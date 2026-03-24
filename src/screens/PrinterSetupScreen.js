@@ -11,9 +11,13 @@ import { PrinterContext } from "../context/PrinterContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PermissionsAndroid } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SnackbarContext } from "../context/SnackbarContext";
 
 
 export default function PrinterSetupScreen() {
+
+
+    const { showSnackbar } = useContext(SnackbarContext);
 
 
     console.log("i am in printert setup screen")
@@ -61,7 +65,7 @@ export default function PrinterSetupScreen() {
             const allowed = await requestBluetoothPermission();
 
             if (!allowed) {
-                alert("Bluetooth permission required");
+                showSnackbar("Bluetooth permission required", "error");
                 return;
             }
 
@@ -71,7 +75,7 @@ export default function PrinterSetupScreen() {
             console.log("Found printers:", list);
 
             if (!list || list.length === 0) {
-                alert("No printers found");
+                showSnackbar("No printers found", "warning");
                 return;
             }
 
@@ -79,7 +83,7 @@ export default function PrinterSetupScreen() {
 
         } catch (err) {
             console.log("Scan error:", err);
-            alert("Scan failed");
+            showSnackbar("Scan failed", "error");
         }
     };
 
@@ -163,7 +167,7 @@ export default function PrinterSetupScreen() {
                     </View>
                 </View>
 
-                <View style={{ flexDirection: "row", gap: 10 }}>
+                <View style={{ flexDirection: "row", gap: 16 }}>
 
                     <TouchableOpacity
                         onPress={() => selectBillingPrinter(item)}
@@ -195,7 +199,8 @@ export default function PrinterSetupScreen() {
 
     const savePrinters = async () => {
         if (!billingPrinter) {
-            alert("Select Billing Printer");
+
+            showSnackbar("Select Billing Printer", "warning");
             return;
         }
 
@@ -210,7 +215,7 @@ export default function PrinterSetupScreen() {
         const check = await AsyncStorage.getItem("printer_settings");
         // console.log("Saved Printer Settings:", check);
 
-        alert("Printers Saved Successfully");
+        showSnackbar("Printers Saved Successfully", "warning");
     };
 
 
@@ -241,14 +246,15 @@ export default function PrinterSetupScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
-        backgroundColor: "#F6F7FB",
+        padding: 10,
+        // backgroundColor: "#F6F7FB",
     },
 
     title: {
         fontSize: 24,
         fontWeight: "700",
         marginBottom: 20,
+        color: "black"
     },
 
     scanButton: {
@@ -266,7 +272,7 @@ const styles = StyleSheet.create({
 
     printerCard: {
         backgroundColor: "white",
-        padding: 18,
+        padding: 14,
         borderRadius: 14,
         marginBottom: 14,
         flexDirection: "row",
@@ -274,9 +280,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
 
         shadowColor: "#000",
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.04,
         shadowRadius: 10,
-        elevation: 3,
+        elevation: 2,
     },
 
     selectedCard: {
@@ -297,6 +303,7 @@ const styles = StyleSheet.create({
     printerName: {
         fontSize: 16,
         fontWeight: "600",
+        color: "black"
     },
 
     printerAddress: {

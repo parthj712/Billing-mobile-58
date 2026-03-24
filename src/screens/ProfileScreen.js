@@ -198,7 +198,7 @@ export default function ProfileScreen() {
                             style={styles.closeBtn}
                             onPress={() => setPrinterVisible(false)}
                         >
-                            <Text style={{ fontWeight: "bold", fontSize: 16 }}>Close</Text>
+                            <Text style={{ fontWeight: "bold", fontSize: 16 , color : "black"}}>Close</Text>
                         </TouchableOpacity>
 
                         {/* Printer Setup Screen */}

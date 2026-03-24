@@ -83,7 +83,7 @@ export default function BottomTabs() {
                     return (
                         <MaterialIcons
                             name={iconName || "circle"}
-                            size={26}
+                            size={25}
                             color={color}
                         />
                     );
@@ -110,7 +110,7 @@ export default function BottomTabs() {
 const styles = StyleSheet.create({
     tabBar: {
         // position: "absolute",
-        height: 80,
+        height: 70,
         backgroundColor: "#ffffff",
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
@@ -121,8 +121,7 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
     },
     label: {
-        fontSize: 13,
-        fontWeight: "500",
-        marginBottom: 5,
+        fontSize: 11,
+        fontWeight: "600",
     },
 });

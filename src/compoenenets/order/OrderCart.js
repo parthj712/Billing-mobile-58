@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useContext } from "react";
+import React, { useMemo, useState, useEffect, useContext, useRef } from "react";
 import {
     View,
     Text,
@@ -26,6 +26,9 @@ import { SnackbarContext } from "../../context/SnackbarContext";
 import { PrinterContext } from "../../context/PrinterContext";
 import { printBillSmart, printKOTSmart } from "../../screens/printSmart";
 import { getFeedbackLink, getShopInfo } from "../../services/shopService";
+import ViewShot from "react-native-view-shot";
+import { BillDesign } from "../BillDesign";
+import { KOTDesign } from "../KOTDesign";
 
 
 
@@ -37,7 +40,16 @@ export default function OrderCart({
     refreshTrigger,   // ✅ ADD THIS
     onCartUpdate
 }) {
+
+    const viewShotRef = useRef();
+    const kotShotRef = useRef();
+
     const isDineIn = orderType === "DINE-IN";
+
+    const showTables =
+        shopData?.businessCategory === "DINE_IN" ||
+        shopData?.businessCategory === "RESTO_BAR";
+
 
     const { showSnackbar } = useContext(SnackbarContext);
 
@@ -90,7 +102,7 @@ export default function OrderCart({
 
                 res = await fetchActiveTakaway();
 
-                console.log("fetchActiveTakaway".res?.data)
+                console.log("fetchActiveTakaway", res?.data)
 
             } else if (orderType === "DINE-IN" && tableId) {
                 res = await fetchActiveOrder(tableId);
@@ -238,7 +250,9 @@ export default function OrderCart({
     const subtotal = foodSubtotal + liquorSubtotal;
 
     const hasGST = !!shopData?.gstNumber;
+    console.log("hasgst" , hasGST)
     const hasVAT = !!shopData?.vatNumber;
+     console.log("hasVAT" , hasVAT)
 
     const gst = hasGST ? foodSubtotal * (GST_PERCENT / 100) : 0;
     const vat = hasVAT ? liquorSubtotal * (VAT_PERCENT / 100) : 0;
@@ -266,7 +280,8 @@ export default function OrderCart({
                     newItems,
                     shopData,
                     orderType,
-                    printerSettings
+                    printerSettings,
+                    kotShotRef
                 );
             }
 
@@ -332,7 +347,8 @@ export default function OrderCart({
                     orderType,
                     printerSettings,
                     customerName,
-                    feedbackUrl
+                    feedbackUrl,
+                    viewShotRef
                 );
             }
 
@@ -354,7 +370,10 @@ export default function OrderCart({
     };
 
     const renderItem = (item, highlight = false) => (
-        <View key={item._id} style={styles.itemRow}>
+        <View key={item._id} style={[
+            styles.itemRow,
+            highlight && styles.newItemRow   // 🔥 ADD THIS
+        ]}>
             <View>
                 <Text style={styles.itemName}>
                     {item.name}
@@ -370,13 +389,13 @@ export default function OrderCart({
 
             <View style={styles.qtyBox}>
                 <TouchableOpacity onPress={() => decreaseQty(item)}>
-                    <MaterialIcons name="remove" size={20} color ="black"/>
+                    <MaterialIcons name="remove" size={20} color="black" />
                 </TouchableOpacity>
 
                 <Text style={styles.qtyText}>{item.qty}</Text>
 
                 <TouchableOpacity onPress={() => increaseQty(item)}>
-                    <MaterialIcons name="add" size={20} color ="black"/>
+                    <MaterialIcons name="add" size={20} color="black" />
                 </TouchableOpacity>
             </View>
         </View>
@@ -414,36 +433,41 @@ export default function OrderCart({
                     </Text>
                 )}
 
-                {printedItems.map((item) => renderItem(item, false))}
-
                 {newItems.length > 0 && (
                     <>
                         <View style={styles.divider} />
                         <Text style={styles.newItemsTitle}>
                             New Items
                         </Text>
+
+
+                        {newItems.map((item) => renderItem(item, true))}
+                        <View style={styles.divider} />
                     </>
                 )}
 
-                {newItems.map((item) => renderItem(item, true))}
+
+                {printedItems.map((item) => renderItem(item, false))}
+
+
 
                 <View style={styles.totalBox}>
                     <View style={styles.rowBetween}>
-                        <Text style={{color : "black"}}>Subtotal</Text>
-                        <Text style={{color : "black"}}>₹ {subtotal.toFixed(2)}</Text>
+                        <Text style={{ color: "black" }}>Subtotal</Text>
+                        <Text style={{ color: "black" }}>₹ {subtotal.toFixed(2)}</Text>
                     </View>
 
                     {foodSubtotal > 0 && hasGST && (
                         <View style={styles.rowBetween}>
-                            <Text style={{color : "black"}}>GST (5%)</Text>
-                            <Text style={{color : "black"}}>₹ {gst.toFixed(2)}</Text>
+                            <Text style={{ color: "black" }}>GST (5%)</Text>
+                            <Text style={{ color: "black" }}>₹ {gst.toFixed(2)}</Text>
                         </View>
                     )}
 
                     {liquorSubtotal > 0 && hasVAT && (
                         <View style={styles.rowBetween}>
-                            <Text style={{color : "black"}}>VAT (10%)</Text>
-                            <Text style={{color : "black"}}>₹ {vat.toFixed(2)}</Text>
+                            <Text style={{ color: "black" }}>VAT (10%)</Text>
+                            <Text style={{ color: "black" }}>₹ {vat.toFixed(2)}</Text>
                         </View>
                     )}
 
@@ -460,6 +484,9 @@ export default function OrderCart({
                 </View>
             </ScrollView>
 
+
+            {/* print kot button */}
+
             {cartItems.length > 0 && (
                 <View style={styles.bottomBar}>
                     {isDineIn && (
@@ -467,7 +494,7 @@ export default function OrderCart({
                             style={styles.secondaryBtn}
                             onPress={handlePrintKOT}
                         >
-                            <Text>Print KOT</Text>
+                            <Text style={{ color: "#1E293B", fontWeight: "bold" }}>Print KOT</Text>
                         </TouchableOpacity>
                     )}
 
@@ -529,6 +556,53 @@ export default function OrderCart({
             </Modal>
 
 
+
+            <ViewShot
+                ref={viewShotRef}
+                collapsable={false}
+                style={{
+                    position: "absolute",
+                    opacity: 0,
+                    zIndex: -1,
+                }}
+                pointerEvents="none"
+            >
+                <BillDesign
+                    items={cartItems}
+                    total={total}
+                    subtotal={subtotal}
+                    gst={gst}
+                    vat={vat}
+                    shopData={shopData}
+                    customerName={customerName}
+                    orderType={orderType}
+                    feedbackUrl={feedbackUrl}
+                />
+            </ViewShot>
+
+
+            <ViewShot
+                ref={kotShotRef}
+                collapsable={false}
+                style={{
+                    position: "absolute",
+                    opacity: 0,
+                    zIndex: -1,
+                }}
+                pointerEvents="none"
+            >
+
+                <KOTDesign
+                    tableNo={tableNo}
+                    items={newItems}
+                    shopName={shopData?.shopName}
+                    orderType
+                />
+            </ViewShot>
+
+
+
+
         </View>
     );
 }
@@ -547,7 +621,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         marginBottom: 10,
         textAlign: "center",
-        color : "black"
+        color: "black"
     },
 
     emptyText: {
@@ -568,13 +642,13 @@ const styles = StyleSheet.create({
     itemName: {
         fontWeight: "600",
         fontSize: 15,
-        color : "black"
+        color: "black"
     },
 
     itemPrice: {
         fontSize: 13,
         color: "#64748B",
-        color : "black"
+        color: "black"
     },
 
     newTag: {
@@ -587,13 +661,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
-        color : "black"
+        color: "black"
     },
 
     qtyText: {
         fontWeight: "bold",
         fontSize: 16,
-        color : "black"
+        color: "black"
     },
 
     divider: {
@@ -607,6 +681,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "red",
         marginBottom: 10,
+        fontSize: 20
     },
 
     totalBox: {
@@ -622,7 +697,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         // marginVertical: 3,
-        color : "black"
+        color: "black"
     },
 
     totalDivider: {
@@ -634,7 +709,7 @@ const styles = StyleSheet.create({
     totalText: {
         fontWeight: "bold",
         fontSize: 16,
-        color : "black"
+        color: "black"
     },
 
     totalAmount: {
@@ -648,6 +723,9 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         padding: 15,
+        backgroundColor: "#fff", // 🔥 ADD
+        borderTopWidth: 1,       // 🔥 ADD
+        borderColor: "#E2E8F0",
     },
 
     primaryBtn: {
@@ -663,6 +741,7 @@ const styles = StyleSheet.create({
         padding: 15,
         borderRadius: 10,
         alignItems: "center",
+
     },
 
     modalOverlay: {
@@ -704,13 +783,13 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         marginBottom: 25,
-        color :  "black"
+        color: "black"
     },
 
     totalLabel: {
         fontSize: 20,
         color: "#64748B",
-        color : "black"
+        color: "black"
         // marginBottom: 6,
     },
 
