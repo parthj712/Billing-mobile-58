@@ -18,4 +18,19 @@ buildscript {
     }
 }
 
+// 🔥 ADD THIS BLOCK (VERY IMPORTANT)
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://www.jitpack.io" }
+
+        // ✅ FIX FOR YOUR ERROR
+        maven {
+            url "http://jcenter.bintray.com/"
+            allowInsecureProtocol = true
+        }
+    }
+}
+
 apply plugin: "com.facebook.react.rootproject"

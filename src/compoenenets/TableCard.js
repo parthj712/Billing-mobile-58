@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
   tableNo: {
     fontSize: 18,
     fontWeight: "bold",
+    color : "black"
   },
   statusBadge: {
     marginTop: 8,
@@ -83,6 +84,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontWeight: "600",
+    color : "black"
   },
   timeText: {
     marginTop: 6,

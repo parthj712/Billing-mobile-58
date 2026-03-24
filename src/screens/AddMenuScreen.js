@@ -244,6 +244,7 @@ export default function AddMenuScreen() {
             <TextInput
                 style={styles.input}
                 placeholder="Item Name"
+                placeholderTextColor="black"
                 value={form.name}
                 onChangeText={(v) => handleChange("name", v)}
             />
@@ -251,6 +252,7 @@ export default function AddMenuScreen() {
             <TextInput
                 style={[styles.input, { height: 80 }]}
                 placeholder="Description"
+                placeholderTextColor="black"
                 multiline
                 value={form.description}
                 onChangeText={(v) => handleChange("description", v)}
@@ -259,6 +261,7 @@ export default function AddMenuScreen() {
             <TextInput
                 style={styles.input}
                 placeholder="Item Code"
+                placeholderTextColor="black"
                 value={form.itemCode}
                 onChangeText={(v) => handleChange("itemCode", v)}
             />
@@ -479,14 +482,35 @@ export default function AddMenuScreen() {
 
             <Text style={styles.label}>Price Type</Text>
 
-            <Picker
-                selectedValue={form.priceType}
-                onValueChange={(v) => handleChange("priceType", v)}
-            >
-                <Picker.Item label="Single Price" value="SINGLE" />
-                <Picker.Item label="Half / Full" value="HALF_FULL" />
-                <Picker.Item label="Variants" value="VARIANT" />
-            </Picker>
+            <View style={styles.gridContainer}>
+
+                {[
+                    { label: "Single Price", value: "SINGLE" },
+                    { label: "Half / Full", value: "HALF_FULL" },
+                    { label: "Variants", value: "VARIANT" }
+                ].map((item) => (
+
+                    <TouchableOpacity
+                        key={item.value}
+                        style={[
+                            styles.gridButton,
+                            form.priceType === item.value && styles.gridActive
+                        ]}
+                        onPress={() => handleChange("priceType", item.value)}
+                    >
+                        <Text
+                            style={[
+                                styles.gridText,
+                                form.priceType === item.value && styles.gridActiveText
+                            ]}
+                        >
+                            {item.label}
+                        </Text>
+                    </TouchableOpacity>
+
+                ))}
+
+            </View>
 
             {/* HALF FULL */}
 
@@ -494,6 +518,7 @@ export default function AddMenuScreen() {
                 <>
                     <TextInput
                         style={styles.input}
+                        placeholderTextColor="black"
                         placeholder="Half Price"
                         keyboardType="numeric"
                         value={form.priceHalf}
@@ -503,6 +528,7 @@ export default function AddMenuScreen() {
                     <TextInput
                         style={styles.input}
                         placeholder="Full Price"
+                        placeholderTextColor="black"
                         keyboardType="numeric"
                         value={form.priceFull}
                         onChangeText={(v) => handleChange("priceFull", v)}
@@ -519,6 +545,7 @@ export default function AddMenuScreen() {
                     <TextInput
                         style={styles.priceInput}
                         placeholder="Price"
+                        placeholderTextColor="black"
                         keyboardType="numeric"
                         value={form.priceFull}
                         onChangeText={(v) => handleChange("priceFull", v)}
@@ -538,6 +565,7 @@ export default function AddMenuScreen() {
                             <TextInput
                                 style={styles.variantName}
                                 placeholder="Variant name (Small / Large)"
+                                placeholderTextColor="black"
                                 value={v.name}
                                 onChangeText={(text) =>
                                     updateVariant(i, "name", text)
@@ -551,6 +579,7 @@ export default function AddMenuScreen() {
                                 <TextInput
                                     style={styles.variantPrice}
                                     placeholder="0"
+                                    placeholderTextColor="black"
                                     keyboardType="numeric"
                                     value={v.price}
                                     onChangeText={(text) =>
@@ -625,6 +654,7 @@ const styles = StyleSheet.create({
     label: {
         fontWeight: "600",
         marginTop: 10,
+        color: "black"
     },
 
     submitBtn: {
@@ -684,6 +714,7 @@ const styles = StyleSheet.create({
     foodText: {
         marginLeft: 8,
         fontWeight: "600",
+        color: "black"
     },
 
     vegIconOuter: {
@@ -835,11 +866,11 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         flexWrap: "wrap",
         gap: 10,
-        marginTop: 10,
+        marginVertical: 10,
     },
 
     gridButton: {
-        width: "30%",
+        width: "31%",
         paddingVertical: 14,
         borderRadius: 10,
         borderWidth: 1,
@@ -868,4 +899,5 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "baseline",
     },
+
 });

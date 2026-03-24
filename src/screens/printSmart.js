@@ -4,6 +4,10 @@ import { connectPrinter, printBillBluetooth, printKOTBluetooth } from "../servic
 
 import { ensureConnected } from "../services/printerManager"
 
+import RNFS from "react-native-fs";
+
+import { BluetoothManager, BluetoothEscposPrinter } from "react-native-bluetooth-escpos-printer";
+
 
 
 export const printKOTSmart = async (
@@ -11,33 +15,43 @@ export const printKOTSmart = async (
     items,
     shopData,
     orderType,
-    printerSettings
+    printerSettings,
+    kotShotRef // 🔥 ADD THIS
 ) => {
+    try {
+        const address =
+            printerSettings?.kotPrinter?.address ||
+            printerSettings?.billingPrinter?.address;
 
-    const address =
-        printerSettings?.kotPrinter?.address ||
-        printerSettings?.billingPrinter?.address;
+        if (!address) {
+            console.log("No printer configured");
+            return;
+        }
 
-    if (!address) {
-        console.log("No printer configured");
-        return;
+        await BluetoothManager.connect(address);
+        console.log("✅ Printer connected");
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 🔥 CAPTURE IMAGE
+        const uri = await kotShotRef.current.capture({
+            format: "png",
+            quality: 1,
+            result: "tmpfile",
+        });
+
+        const base64 = await RNFS.readFile(uri, "base64");
+
+        // 🔥 PRINT IMAGE (REGIONAL SUPPORT)
+        await BluetoothEscposPrinter.printPic(base64, {
+            width: 576,
+        });
+
+        console.log("✅ KOT PRINT SUCCESS");
+
+    } catch (err) {
+        console.log("KOT PRINT ERROR:", err);
     }
-
-    const device = await ensureConnected(address);
-
-    if (!device) {
-        console.log("Printer connection failed");
-        return;
-    }
-
-    await printKOTBluetooth(
-        device,
-        shopData?.shopName || "Restaurant Name",
-        orderType,
-        tableNo,
-        new Date().toLocaleString(),
-        items
-    );
 };
 
 export const printBillSmart = async (
@@ -51,38 +65,38 @@ export const printBillSmart = async (
     orderType,
     printerSettings,
     customerName,
-    feedbackUrl
+    feedbackUrl,
+    viewShotRef
 ) => {
+    try {
+        const address = printerSettings?.billingPrinter?.address;
 
-    const address = printerSettings?.billingPrinter?.address;
+        if (!address) {
+            console.log("❌ No printer address");
+            return;
+        }
 
-    if (!address) {
-        console.log("No billing printer configured");
-        return;
+        await BluetoothManager.connect(address);
+        console.log("✅ Printer connected");
+
+        // 🔥 IMPORTANT FIX (RIGHT PLACE)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const uri = await viewShotRef.current.capture({
+            format: "png",
+            quality: 1,
+            result: "tmpfile",
+        });
+
+        const base64 = await RNFS.readFile(uri, "base64");
+
+        await BluetoothEscposPrinter.printPic(base64, {
+            width: 576, // 🔥 try this even for 58mm
+        });
+
+        console.log("✅ PRINT SUCCESS");
+
+    } catch (err) {
+        console.log("PRINT ERROR:", err);
     }
-
-    const device = await ensureConnected(address);
-
-    if (!device) {
-        console.log("Printer connection failed");
-        return;
-    }
-
-    // ⭐ ADD THIS
-    const paperWidth = printerSettings?.paperWidth || "58";
-
-    await printBillBluetooth(
-        device,
-        shopData,
-        orderType,
-        new Date(),
-        `Table ${tableNo}`,
-        cartItems,
-        subtotal,
-        gst,
-        vat,
-        total,
-        customerName,
-        feedbackUrl
-    );
 };

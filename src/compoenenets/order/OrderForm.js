@@ -23,7 +23,6 @@ import { Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { nanoid } from "nanoid/non-secure";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Calendar } from "react-native-calendars";
 
 export default function OrderForm({
     tableId,
@@ -60,6 +59,8 @@ export default function OrderForm({
 
     const [category, setCategory] = useState("");
 
+    const [subCategory, setSubCategory] = useState("");
+
 
     const [shopData, setShopData] = useState(null);
     const isDineIn = shopData?.businessCategory === "DINE_IN";
@@ -94,30 +95,23 @@ export default function OrderForm({
     const filteredItems = useMemo(() => {
         const q = search.toLowerCase().trim();
 
-        // 🔴 If nothing selected and no search → show nothing
-        if (!category && !q) {
-            return [];
+        let filtered = menuItems;
+
+        if (category) {
+            filtered = filtered?.filter((i) => i.categoryName === category);
         }
 
-        return menuItems?.filter((i) => {
-            const matchesCategory = category
-                ? i.categoryName === category
-                : true;
+        if (subCategory) {
+            filtered = filtered?.filter((i) => i.subCategory === subCategory);
+        }
 
-            const matchesSearch =
-                q.length > 0 &&
-                (i.name.toLowerCase().includes(q) ||
-                    i.itemCode.toLowerCase().includes(q));
+        if (!q) return filtered;
 
-            // If category selected → ignore search
-            if (category) return matchesCategory;
-
-            // If searching → ignore category
-            if (q) return matchesSearch;
-
-            return false;
-        });
-    }, [menuItems, search, category]);
+        return filtered?.filter((i) =>
+            i.name.toLowerCase().includes(q) ||
+            i.itemCode.toLowerCase().includes(q)
+        );
+    }, [menuItems, search, category, subCategory]);
 
 
 
@@ -133,6 +127,18 @@ export default function OrderForm({
         return Array.from(uniqueCategories);
     }, [menuItems]);
 
+    const subCategories = useMemo(() => {
+        if (!category) return [];
+
+        return [
+            ...new Set(
+                menuItems
+                    ?.filter((i) => i.categoryName === category)
+                    .map((i) => i.subCategory)
+                    .filter(Boolean)
+            ),
+        ];
+    }, [menuItems, category]);
 
     // console.log("categories:", categories);
 
@@ -358,6 +364,8 @@ export default function OrderForm({
             setSelectedItems([]);
             setKotMessage("");
             setCustomerName("");
+            setcustomerMobile("");
+            setcustomerBirthDate("");
 
         } catch (error) {
             showSnackbar("Failed to add order", "error");
@@ -369,7 +377,7 @@ export default function OrderForm({
         try {
             const res = await getShopInfo();
             setShopData(res?.data?.data);
-            // console.log("Shop data:", res?.data?.data); // Debugging line
+            console.log("Shop data:", res?.data?.data); // Debugging line
         } catch (error) {
             console.log("Shop fetch error", error);
             setShopData({}); // fallback
@@ -384,6 +392,7 @@ export default function OrderForm({
     return (
         <>
             <FlatList
+                key={numColumns}
                 data={filteredItems}
                 numColumns={numColumns}
                 columnWrapperStyle={{ justifyContent: "space-between" }}
@@ -406,7 +415,7 @@ export default function OrderForm({
                         )}
 
                         {orderType === "TAKEAWAY" && shopData?.businessCategory === "BAKERY" && (
-                            <View style={{ display: "flex", flexDirection: "row", gap: 4 }}>
+                            <View>
                                 <TextInput
                                     placeholder="Enter mobile number"
                                     placeholderTextColor="black"
@@ -430,10 +439,10 @@ export default function OrderForm({
                                 /> */}
 
                                 <TouchableOpacity
-                                    onPress={() => setCalendarVisible(true)}
+                                    onPress={() => setShowDatePicker(true)}
                                     style={styles.input}
                                 >
-                                    <Text style={{ color: customerBirthDate ? "black" : "#9CA3AF" }}>
+                                    <Text style={{ color: customerBirthDate ? "black" : "#404040" }}>
                                         {customerBirthDate || "Select Birthdate"}
                                     </Text>
                                 </TouchableOpacity>
@@ -473,8 +482,59 @@ export default function OrderForm({
                             >
                                 <MaterialIcons name="restaurant-menu" size={18} color="#fff" />
                             </TouchableOpacity>
+
                         </View>
-                        {isDineIn ? (<Text style={styles.title}>Menu Items</Text>) : (<Text style={styles.title}>Takeaway Order</Text>)}
+
+                        {subCategories.length > 0 && (
+                            <View style={{ marginBottom: 12 }}>
+                                <FlatList
+                                    horizontal
+                                    data={["All", ...subCategories]}   // 👈 add ALL option
+                                    keyExtractor={(item) => item}
+                                    showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={{ paddingRight: 10 }}
+                                    renderItem={({ item }) => {
+                                        const isActive =
+                                            item === "All"
+                                                ? subCategory === ""
+                                                : subCategory === item;
+
+                                        return (
+                                            <TouchableOpacity
+                                                onPress={() =>
+                                                    setSubCategory(item === "All" ? "" : item)
+                                                }
+                                                style={{
+                                                    paddingHorizontal: 16,
+                                                    paddingVertical: 8,
+                                                    borderRadius: 20,
+                                                    backgroundColor: isActive ? "#334155" : "#E2E8F0",
+                                                    marginRight: 8,
+                                                    minWidth: 80,
+                                                    alignItems: "center",
+                                                }}
+                                                activeOpacity={0.8}
+                                            >
+                                                <Text
+                                                    numberOfLines={1}
+                                                    style={{
+                                                        color: isActive ? "#fff" : "#1E293B",
+                                                        fontWeight: "600",
+                                                        fontSize: 13,
+                                                    }}
+                                                >
+                                                    {item}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    }}
+                                />
+                            </View>
+                        )}
+
+                        <Text style={styles.title}>
+                            {isDineIn ? "Menu Items" : "Takeaway Order"}
+                        </Text>
 
                     </View>
                 }
@@ -486,7 +546,7 @@ export default function OrderForm({
                         <Text style={{ fontWeight: "600", fontSize: 14, color: "black" }}>
                             {item.name}
                         </Text>
-                        <View>
+                        {/* <View>
                             {item.priceType === "VARIANT" ? (
                                 <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 4 }}>
                                     {item.variants?.map((v, i) => (
@@ -505,7 +565,7 @@ export default function OrderForm({
                                     ₹ {item.price?.full ?? 0}
                                 </Text>
                             )}
-                        </View>
+                        </View> */}
                     </TouchableOpacity>
                 )}
 
@@ -552,7 +612,7 @@ export default function OrderForm({
                                             <View style={{ flexDirection: "column", justifyContent: "space-between", alignItems: "flex-start", marginTop: 12 }}>
 
                                                 {/* Portion Buttons */}
-                                                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start" }}>
+                                                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start"  }}>
 
                                                     {/* VARIANT */}
                                                     {x.item.priceType === "VARIANT" &&
@@ -764,44 +824,22 @@ export default function OrderForm({
             </Modal>
 
 
-            <Modal
-                visible={calendarVisible}
-                transparent
-                animationType="fade"
-            >
-                <View style={styles.calendarOverlay}>
-                    <View style={styles.calendarContainer}>
+            {showDatePicker && (
+                <DateTimePicker
+                    value={customerBirthDate ? new Date(customerBirthDate) : new Date(1990, 0, 1)}
+                    mode="date"
+                    display="spinner" // 👈 IMPORTANT (best for old dates)
+                    maximumDate={new Date()} // no future dates
+                    onChange={(event, selectedDate) => {
+                        setShowDatePicker(false);
 
-                        <Text style={styles.calendarTitle}>Select Birthdate</Text>
-
-                        <Calendar
-                            onDayPress={(day) => {
-                                setcustomerBirthDate(day.dateString);
-                                setCalendarVisible(false);
-                            }}
-                            markedDates={{
-                                [customerBirthDate]: {
-                                    selected: true,
-                                    selectedColor: "#F97316",
-                                },
-                            }}
-                            theme={{
-                                todayTextColor: "#F97316",
-                                arrowColor: "#F97316",
-                                selectedDayBackgroundColor: "#F97316",
-                            }}
-                        />
-
-                        <TouchableOpacity
-                            onPress={() => setCalendarVisible(false)}
-                            style={styles.closeBtn}
-                        >
-                            <Text style={{ color: "#fff" }}>Close</Text>
-                        </TouchableOpacity>
-
-                    </View>
-                </View>
-            </Modal>
+                        if (selectedDate) {
+                            const formatted = selectedDate.toISOString().split("T")[0];
+                            setcustomerBirthDate(formatted);
+                        }
+                    }}
+                />
+            )}
         </>
     );
 }
@@ -821,12 +859,10 @@ const styles = StyleSheet.create({
     input: {
         backgroundColor: "#fff",
         paddingHorizontal: 14,
-        paddingVertical: 6,
+        paddingVertical: 8,
         borderRadius: 8,
         borderWidth: 1,
         marginBottom: 10,
-        width: "50%",
-        maxWidth: "100%",
         color: "black"
     },
     inputBirthday: {
@@ -842,7 +878,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         padding: 12,
         borderRadius: 8,
-        // margin: 6,
+        margin: 2,
         borderWidth: 1,
         borderColor: "#E2E8F0",
         color: "black"
@@ -873,7 +909,7 @@ const styles = StyleSheet.create({
         borderColor: "#CBD5E1",
         textAlign: "center",
     },
-    totalText: { fontSize: 18, fontWeight: "bold", textAlign: "center" , color : "black"},
+    totalText: { fontSize: 18, fontWeight: "bold", textAlign: "center", color: "black" },
     button: {
         backgroundColor: "#1E293B",
         padding: 15,
@@ -886,7 +922,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
-        marginRight: 8,   // ✅ add spacing here
+        margin: 4,   // ✅ add spacing here
     },
 
     activePortion: {
@@ -918,7 +954,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#fff",
         paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingVertical: 6,
         borderRadius: 10,
         borderWidth: 1,
         borderColor: "#E2E8F0",

@@ -29,8 +29,8 @@ export default function HomeScreen() {
     };
 
     useEffect(() => {
-    fetchFeedbackLink();
-}, []);
+        fetchFeedbackLink();
+    }, []);
 
     const insets = useSafeAreaInsets();
 
@@ -47,6 +47,10 @@ export default function HomeScreen() {
 
     const [shopData, setShopData] = useState(null);
     const isDineIn = shopData?.businessCategory === "DINE_IN";
+
+    const showTables =
+        shopData?.businessCategory === "DINE_IN" ||
+        shopData?.businessCategory === "RESTO_BAR";
 
     const navigation = useNavigation();
 
@@ -104,7 +108,7 @@ export default function HomeScreen() {
         try {
             const res = await getShopInfo();
             setShopData(res?.data?.data);
-            // console.log("Shop data:", res?.data?.data); // Debugging line
+            console.log("Shop data:", res?.data?.data); // Debugging line
         } catch (error) {
             console.log("Shop fetch error", error);
             setShopData({}); // fallback
@@ -160,23 +164,13 @@ export default function HomeScreen() {
                     <View style={styles.gridContainer}>
                         <TakeawayButton
                             icon="table-restaurant"
-                            label={isDineIn ? "Takeaway" : "Add Order"}
+                            label={showTables ? "Add Takeaway Order" : "Add Order"}
                             onPress={() =>
                                 navigation.navigate("Orders", {
                                     orderType: "TAKEAWAY",
                                 })
                             }
                         />
-
-                        {/* <ActionButton
-                            icon="table-restaurant"
-                            label={isDineIn ? "Takeaway" : "Add Order"}
-                            onPress={() =>
-                                navigation.navigate("Orders", {
-                                    orderType: "TAKEAWAY",
-                                })
-                            }
-                        /> */}
 
                         <ActionButton
                             icon="description"
@@ -244,7 +238,7 @@ export default function HomeScreen() {
                             style={styles.closeBtn}
                             onPress={() => setPrinterVisible(false)}
                         >
-                            <Text style={{ fontWeight: "bold", fontSize: 16 }}>Close</Text>
+                            <Text style={{ fontWeight: "bold", fontSize: 16, color: "black" }}>Close</Text>
                         </TouchableOpacity>
 
                         {/* Printer Setup Screen */}
@@ -267,7 +261,7 @@ export default function HomeScreen() {
                             style={styles.closeBtn}
                             onPress={() => setMenuVisible(false)}
                         >
-                            <Text style={{ fontWeight: "bold", fontSize: 16 }}>Close</Text>
+                            <Text style={{ fontWeight: "bold", fontSize: 16, color: "black" }}>Close</Text>
                         </TouchableOpacity>
 
                         {/* Printer Setup Screen */}
