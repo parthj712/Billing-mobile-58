@@ -36,6 +36,7 @@ export default function OrderCart({
     tableId,
     orderType,
     tableNo,
+    sectionName,
     onBack,
     refreshTrigger,   // ✅ ADD THIS
     onCartUpdate
@@ -250,9 +251,9 @@ export default function OrderCart({
     const subtotal = foodSubtotal + liquorSubtotal;
 
     const hasGST = !!shopData?.gstNumber;
-    console.log("hasgst" , hasGST)
+    console.log("hasgst", hasGST)
     const hasVAT = !!shopData?.vatNumber;
-     console.log("hasVAT" , hasVAT)
+    console.log("hasVAT", hasVAT)
 
     const gst = hasGST ? foodSubtotal * (GST_PERCENT / 100) : 0;
     const vat = hasVAT ? liquorSubtotal * (VAT_PERCENT / 100) : 0;
@@ -577,6 +578,7 @@ export default function OrderCart({
                     customerName={customerName}
                     orderType={orderType}
                     feedbackUrl={feedbackUrl}
+                    sectionName={sectionName}
                 />
             </ViewShot>
 
@@ -596,7 +598,8 @@ export default function OrderCart({
                     tableNo={tableNo}
                     items={newItems}
                     shopName={shopData?.shopName}
-                    orderType
+                    orderType={orderType}
+                    sectionName={sectionName}
                 />
             </ViewShot>
 

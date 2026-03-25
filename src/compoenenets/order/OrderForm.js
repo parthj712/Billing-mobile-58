@@ -65,6 +65,10 @@ export default function OrderForm({
     const [shopData, setShopData] = useState(null);
     const isDineIn = shopData?.businessCategory === "DINE_IN";
 
+    const showTables =
+        shopData?.businessCategory === "DINE_IN" ||
+        shopData?.businessCategory === "RESTO_BAR";
+
 
     const screenWidth = Dimensions.get("window").width;
     const numColumns = screenWidth > 600 ? 3 : 2;
@@ -263,7 +267,7 @@ export default function OrderForm({
         }
 
         setSearch("");
-        searchRef.current?.focus();
+        // searchRef.current?.focus();
     };
 
     const updateQty = (id, qty) => {
@@ -533,7 +537,8 @@ export default function OrderForm({
                         )}
 
                         <Text style={styles.title}>
-                            {isDineIn ? "Menu Items" : "Takeaway Order"}
+                            {/* {showTables ? "Menu Items" : "Takeaway Order"} */}
+                            Menu Items
                         </Text>
 
                     </View>
@@ -571,16 +576,21 @@ export default function OrderForm({
 
 
                 ListFooterComponent={
-                    <View>
+                    <View >
                         {selectedItems.length > 0 && (
-                            <>
+                            <View style={{
+                                shadowColor: "#000",
+                                shadowOpacity: 0.1,
+                                shadowRadius: 10,
+                                elevation: 3,
+                                backgroundColor: "#EEF2FF",
+                                borderColor: "#6366F1", marginVertical: 18, padding: 18, display: "flex", flexDirection: "column", borderRadius: 20
+                            }}>
 
+                                <Text style={styles.selectedHeaderText}>
+                                    Selected Items ({selectedItems.length})
+                                </Text>
 
-                                <View style={styles.selectedHeader}>
-                                    <Text style={styles.selectedHeaderText}>
-                                        Selected Items ({selectedItems.length})
-                                    </Text>
-                                </View>
 
                                 {selectedItems.map((x) => {
                                     const unitPrice = getItemPrice(x);
@@ -597,12 +607,12 @@ export default function OrderForm({
 
 
                                                 <Text style={{ color: "black" }}>
-                                                    ₹ {unitPrice} /
-                                                    {x.variantName
+                                                    ₹ {unitPrice}
+                                                    {/* {x.variantName
                                                         ? ` (${x.variantName})`
                                                         : x.portion
                                                             ? ` (${x.portion})`
-                                                            : ""}
+                                                            : ""} */}
                                                 </Text>
 
 
@@ -612,7 +622,7 @@ export default function OrderForm({
                                             <View style={{ flexDirection: "column", justifyContent: "space-between", alignItems: "flex-start", marginTop: 12 }}>
 
                                                 {/* Portion Buttons */}
-                                                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start"  }}>
+                                                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start" }}>
 
                                                     {/* VARIANT */}
                                                     {x.item.priceType === "VARIANT" &&
@@ -735,11 +745,11 @@ export default function OrderForm({
                                     style={styles.Nameinput}
                                 />
 
-                                <View style={styles.totalBox}>
+                                {/* <View style={styles.totalBox}>
                                     <Text style={styles.totalText}>
-                                        {`Total ₹ ${totalAmount}`}
+                                        {`Total Amount ₹ ${totalAmount}`}
                                     </Text>
-                                </View>
+                                </View> */}
 
                                 <TouchableOpacity
                                     style={styles.button}
@@ -749,7 +759,7 @@ export default function OrderForm({
                                         Add All To Order
                                     </Text>
                                 </TouchableOpacity>
-                            </>
+                            </View>
                         )}
                     </View>
                 }
@@ -878,19 +888,19 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         padding: 12,
         borderRadius: 8,
-        margin: 2,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
+        margin: 4,
         color: "black"
     },
     card: {
         backgroundColor: "#F8FAFC",
-        paddingHorizontal: 12,
+        paddingHorizontal: 14,
         paddingVertical: 10,
         borderRadius: 10,
-        marginBottom: 10,
+        marginVertical: 10,
         borderColor: "#E2E8F0",
-        borderWidth: 1,
+
+        borderLeftWidth: 5,
+
     },
     row: {
         flexDirection: "row",
@@ -909,7 +919,12 @@ const styles = StyleSheet.create({
         borderColor: "#CBD5E1",
         textAlign: "center",
     },
-    totalText: { fontSize: 18, fontWeight: "bold", textAlign: "center", color: "black" },
+    totalText: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: "#111827",
+        textAlign: "right",
+    },
     button: {
         backgroundColor: "#1E293B",
         padding: 15,
@@ -1025,9 +1040,11 @@ const styles = StyleSheet.create({
     },
 
     selectedHeaderText: {
-        fontSize: 16,
+        fontSize: 20,
         fontWeight: "700",
-        color: "#1E293B"
+        color: "#1E293B",
+        textAlign: "center",
+        paddingBottom: 14
     },
     qtyContainer: {
         flexDirection: "row",
