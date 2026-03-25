@@ -11,16 +11,20 @@ export const KOTDesign = ({ tableNo, items, shopName, orderType }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={{ fontSize: 18, textAlign: "center", color: "black" }}>
+            <Text style={{ fontSize: 22, textAlign: "center", color: "black" }}>
                 KOT
             </Text>
 
             <Text style={styles.divider}>
-                ----------------------------------------------------------------------------------
+                ------------------------------------------------------------------------------------------------
             </Text>
 
-            <Text style={{ fontSize: 20, textAlign: "center", color: "black" }}>
+            <Text style={{ fontSize: 22, textAlign: "center", color: "black" }}>
                 {shopName}
+            </Text>
+
+            <Text style={styles.divider}>
+                ------------------------------------------------------------------------------------------------
             </Text>
 
             <Text style={styles.leftText}>OrderType :{orderType}</Text>
@@ -29,8 +33,9 @@ export const KOTDesign = ({ tableNo, items, shopName, orderType }) => {
                 Date & Time: {formatTime()}
             </Text>
 
+
             <Text style={styles.divider}>
-                ----------------------------------------------------------------------------------
+                ------------------------------------------------------------------------------------------------
             </Text>
 
 
@@ -40,8 +45,9 @@ export const KOTDesign = ({ tableNo, items, shopName, orderType }) => {
                 </Text>
             ))}
 
+
             <Text style={styles.divider}>
-                ----------------------------------------------------------------------------------
+                ------------------------------------------------------------------------------------------------
             </Text>
 
             <Text style={styles.divider}>
