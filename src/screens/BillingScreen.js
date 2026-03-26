@@ -56,6 +56,7 @@ export default function BillingScreen() {
                 padding: 15,
                 borderRadius: 12,
                 marginBottom: 12,
+                elevation : 2
             }}
         >
             <View
@@ -65,7 +66,7 @@ export default function BillingScreen() {
                     alignItems: "center",
                 }}
             >
-                <Text style={{ fontWeight: "600", fontSize: 16 }}>
+                <Text style={{ fontWeight: "600", fontSize: 16 , color : "black"}}>
                     {item.billNo}
                 </Text>
 
