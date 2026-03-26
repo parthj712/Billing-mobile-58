@@ -91,7 +91,7 @@ export const printBillSmart = async (
         const base64 = await RNFS.readFile(uri, "base64");
 
         await BluetoothEscposPrinter.printPic(base64, {
-            width: 576, // 🔥 try this even for 58mm
+            width: 384, // 🔥 try this even for 58mm
         });
 
         console.log("✅ PRINT SUCCESS");
