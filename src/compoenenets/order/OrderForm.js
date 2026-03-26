@@ -409,17 +409,15 @@ export default function OrderForm({
                         <Text style={styles.title}>Add Order</Text>
 
                         {orderType === "TAKEAWAY" && (
-                            <TextInput
-                                placeholder="Customer Name"
-                                placeholderTextColor="black"
-                                value={customerName}
-                                onChangeText={setCustomerName}
-                                style={styles.Nameinput}
-                            />
-                        )}
-
-                        {orderType === "TAKEAWAY" && shopData?.businessCategory === "BAKERY" && (
                             <View>
+                                <TextInput
+                                    placeholder="Customer Name"
+                                    placeholderTextColor="black"
+                                    value={customerName}
+                                    onChangeText={setCustomerName}
+                                    style={styles.Nameinput}
+                                />
+
                                 <TextInput
                                     placeholder="Enter mobile number"
                                     placeholderTextColor="black"
@@ -433,6 +431,12 @@ export default function OrderForm({
                                     keyboardType="phone-pad"
                                     maxLength={10}
                                 />
+                            </View>
+                        )}
+
+                        {orderType === "TAKEAWAY" && shopData?.businessCategory === "BAKERY" && (
+                            <View>
+
 
                                 {/* <TextInput
                                     placeholder="Birthdate"
