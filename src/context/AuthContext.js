@@ -8,6 +8,7 @@ import {
     removeUser,
 } from "../utils/storage";
 import { loginCaptain } from "../services/authService";
+import API from "../services/api";
 
 export const AuthContext = createContext();
 
@@ -40,8 +41,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
+        try {
+            // ✅ Call backend logout API (same as web)
+            await API.post("/auth/logout");
+            console.log("Logout API success");
+        } catch (error) {
+            console.log("Logout API error:", error);
+        }
+
+        // ✅ Always clear local data (even if API fails)
         await removeToken();
         await removeUser();
+
+        // ✅ Reset user state
         setUser(null);
     };
 

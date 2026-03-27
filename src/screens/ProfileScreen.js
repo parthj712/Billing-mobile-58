@@ -170,7 +170,11 @@ export default function ProfileScreen() {
 
                             <TouchableOpacity
                                 style={styles.logoutBtn}
-                                onPress={logout}
+                                // onPress={logout}
+                                onPress={async () => {
+                                    await logout();
+                                    setLogoutVisible(false); // ✅ close modal
+                                }}
                             >
                                 <Text style={styles.logoutText}>
                                     Sign Out
@@ -198,7 +202,7 @@ export default function ProfileScreen() {
                             style={styles.closeBtn}
                             onPress={() => setPrinterVisible(false)}
                         >
-                            <Text style={{ fontWeight: "bold", fontSize: 16 , color : "black"}}>Close</Text>
+                            <Text style={{ fontWeight: "bold", fontSize: 16, color: "black" }}>Close</Text>
                         </TouchableOpacity>
 
                         {/* Printer Setup Screen */}

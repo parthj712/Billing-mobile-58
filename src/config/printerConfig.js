@@ -5,7 +5,7 @@ export const setPrinterType = (type) => {
 };
 
 export const getPrinterType = () => {
-    return PRINTER_TYPE;
+    return PRINTER_TYPE;    
 };
 
 export const getCanvasWidth = () => {
