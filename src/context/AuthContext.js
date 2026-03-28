@@ -31,8 +31,13 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     };
 
-    const login = async (email, phone, password) => {
-        const data = await loginCaptain(email, phone, password);
+    const login = async (userName, password) => {
+
+        console.log("userName", userName)
+
+        const data = await loginCaptain(userName, password);
+
+        console.log("data", data)
 
         await saveToken(data.token);
         await saveUser(data.user);
@@ -43,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         try {
             // ✅ Call backend logout API (same as web)
-            await API.post("/auth/logout");
+            await API.post("/staff/staff-logout");
             console.log("Logout API success");
         } catch (error) {
             console.log("Logout API error:", error);
