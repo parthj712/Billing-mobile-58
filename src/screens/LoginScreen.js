@@ -17,8 +17,7 @@ export default function LoginScreen() {
     const { login } = useContext(AuthContext);
 
     const [formData, setFormData] = useState({
-        email: "",
-        phone: "",
+        userName: "",
         password: "",
     });
 
@@ -29,8 +28,8 @@ export default function LoginScreen() {
     };
 
     const validate = () => {
-        if (!formData.email.includes("@")) {
-            alert("Enter valid email");
+        if (!formData.userName) {
+            alert("Enter valid username");
             return false;
         }
 
@@ -52,10 +51,10 @@ export default function LoginScreen() {
 
         try {
             setLoading(true);
-            await login(formData.email, formData.password);
+            await login(formData.userName, formData.password);
         } catch (error) {
             alert(
-                error?.response?.data?.message || "Invalid Email, Password"
+                error?.response?.data?.message || "Invalid username, Password"
             );
         } finally {
             setLoading(false);
@@ -88,11 +87,11 @@ export default function LoginScreen() {
                                 </View>
 
                                 <TextInput
-                                    placeholder="Email"
+                                    placeholder="Username"
                                     placeholderTextColor="#94a3b8"
-                                    value={formData.email}
+                                    value={formData.userName}
                                     onChangeText={(value) =>
-                                        handleChange("email", value.toLowerCase())
+                                        handleChange("userName", value)
                                     }
                                     style={styles.input}
                                     keyboardType="email-address"

@@ -19,9 +19,12 @@ export const resetPassword = async (email, newPassword) => {
 };
 
 
-export const loginCaptain = async (email, password) => {
-    const response = await API.post("/auth/login", {
-        email,
+export const loginCaptain = async (userName, password) => {
+
+    console.log("userName", userName)
+    
+    const response = await API.post("/staff/staff-login", {
+        userName,
         password,
     });
 
