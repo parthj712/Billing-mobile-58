@@ -248,18 +248,18 @@ const styles = StyleSheet.create({
     },
 
     itemName: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: "500",
         color: "black",
     },
 
     itemQty: {
-        fontSize: 20,
+        fontSize: 22,
         color: "black",
     },
 
     itemPrice: {
-        fontSize: 20,
+        fontSize: 22,
         color: "black",
     },
 

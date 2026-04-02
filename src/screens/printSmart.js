@@ -9,6 +9,9 @@ import RNFS from "react-native-fs";
 import { BluetoothManager, BluetoothEscposPrinter } from "react-native-bluetooth-escpos-printer";
 
 
+const paperSize = await AsyncStorage.getItem("paper_size");
+
+const is80mm = paperSize === "80mm";
 
 export const printKOTSmart = async (
     tableNo,
@@ -31,7 +34,7 @@ export const printKOTSmart = async (
         await BluetoothManager.connect(address);
         console.log("✅ Printer connected");
 
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         // 🔥 CAPTURE IMAGE
         const uri = await kotShotRef.current.capture({
@@ -45,6 +48,7 @@ export const printKOTSmart = async (
         // 🔥 PRINT IMAGE (REGIONAL SUPPORT)
         await BluetoothEscposPrinter.printPic(base64, {
             width: 576,
+            left: is80mm ? 96 : 0,   // (576 - 384) / 2
         });
 
         console.log("✅ KOT PRINT SUCCESS");
@@ -92,6 +96,7 @@ export const printBillSmart = async (
 
         await BluetoothEscposPrinter.printPic(base64, {
             width: 384, // 🔥 try this even for 58mm
+            left: is80mm ? 96 : 0,
         });
 
         console.log("✅ PRINT SUCCESS");
