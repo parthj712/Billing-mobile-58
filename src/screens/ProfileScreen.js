@@ -75,7 +75,7 @@ export default function ProfileScreen() {
                         <Text style={styles.sectionTitle}>Account</Text>
 
                         <Card style={styles.card}>
-                            <List.Item
+                            {/* <List.Item
                                 title="Email"
                                 description={user?.email || "Not Available"}
                                 titleStyle={{ color: "black" }}
@@ -83,9 +83,7 @@ export default function ProfileScreen() {
                                 left={() => (
                                     <List.Icon icon="email-outline" color="black" />
                                 )}
-                            />
-
-                            <Divider />
+                            /> */}
 
                             <List.Item
                                 title="Role"

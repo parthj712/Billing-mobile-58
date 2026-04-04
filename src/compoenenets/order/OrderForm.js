@@ -23,6 +23,8 @@ import { Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { nanoid } from "nanoid/non-secure";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { ActivityIndicator } from "react-native-paper";
+import { ScrollView } from "react-native";
 
 export default function OrderForm({
     tableId,
@@ -390,7 +392,13 @@ export default function OrderForm({
 
 
 
-    if (!shopData) return null; // prevent flicker
+    if (!shopData || loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                <ActivityIndicator size="large" color="#EE5E1E" />
+            </View>
+        );
+    }
 
 
     return (
@@ -780,50 +788,57 @@ export default function OrderForm({
                     <View style={styles.modalContainer}>
                         <Text style={styles.modalTitle}>Select Category</Text>
 
-                        {/* ALL */}
-                        <TouchableOpacity
-                            style={[
-                                styles.categoryChip,
-                                !category && styles.activeCategoryChip,
-                            ]}
-                            onPress={() => {
-                                setCategory("");
-                                setCategoryModalVisible(false);
-                            }}
+                        <ScrollView
+                            showsVerticalScrollIndicator={true}
+                            style={{ maxHeight: 400 }} // 👈 important
                         >
-                            <Text
-                                style={[
-                                    styles.categoryChipText,
-                                    !category && styles.activeCategoryText,
-                                ]}
-                            >
-                                All
-                            </Text>
-                        </TouchableOpacity>
 
-                        {/* Dynamic Categories */}
-                        {categories.map((cat) => (
+                            {/* ALL */}
                             <TouchableOpacity
-                                key={cat}
                                 style={[
                                     styles.categoryChip,
-                                    category === cat && styles.activeCategoryChip,
+                                    !category && styles.activeCategoryChip,
                                 ]}
                                 onPress={() => {
-                                    setCategory(cat);
+                                    setCategory("");
                                     setCategoryModalVisible(false);
                                 }}
                             >
                                 <Text
                                     style={[
                                         styles.categoryChipText,
-                                        category === cat && styles.activeCategoryText,
+                                        !category && styles.activeCategoryText,
                                     ]}
                                 >
-                                    {cat}
+                                    All
                                 </Text>
                             </TouchableOpacity>
-                        ))}
+
+                            {/* Dynamic Categories */}
+                            {categories.map((cat) => (
+                                <TouchableOpacity
+                                    key={cat}
+                                    style={[
+                                        styles.categoryChip,
+                                        category === cat && styles.activeCategoryChip,
+                                    ]}
+                                    onPress={() => {
+                                        setCategory(cat);
+                                        setCategoryModalVisible(false);
+                                    }}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.categoryChipText,
+                                            category === cat && styles.activeCategoryText,
+                                        ]}
+                                    >
+                                        {cat}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+
+                        </ScrollView>
 
                         <TouchableOpacity
                             onPress={() => setCategoryModalVisible(false)}

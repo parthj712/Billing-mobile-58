@@ -44,7 +44,6 @@ export const printKOTSmart = async (
         // 🔥 PRINT IMAGE (REGIONAL SUPPORT)
         await BluetoothEscposPrinter.printPic(base64, {
             width: 576,
-            left: 96,   // (576 - 384) / 2
         });
 
         console.log("✅ KOT PRINT SUCCESS");
@@ -92,7 +91,6 @@ export const printBillSmart = async (
 
         await BluetoothEscposPrinter.printPic(base64, {
             width: 384, // 🔥 try this even for 58mm
-            left: 96,
         });
 
         console.log("✅ PRINT SUCCESS");

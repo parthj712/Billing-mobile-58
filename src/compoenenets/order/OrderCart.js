@@ -200,6 +200,9 @@ export default function OrderCart({
                 portion: item.portion || null,
                 variantName: item.variantName || null,
             });
+
+            loadOrder();
+            showSnackbar("Item quantity increased", "success");
         } catch (err) {
             showSnackbar("Failed to increase item", "error");
         }
@@ -216,6 +219,7 @@ export default function OrderCart({
             });
 
             loadOrder();
+              showSnackbar("Item quantity decreased", "success")
         } catch (err) {
             showSnackbar("Failed to decrease item", "error");
         }
