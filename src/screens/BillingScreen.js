@@ -20,7 +20,7 @@ export default function BillingScreen() {
     const [loaded, setLoaded] = useState(false); // 🔥 important
 
 
-    
+
 
     const formatTime = (dateString) => {
         if (!dateString) return "";
@@ -56,7 +56,7 @@ export default function BillingScreen() {
                 padding: 15,
                 borderRadius: 12,
                 marginBottom: 12,
-                elevation : 2
+                elevation: 2
             }}
         >
             <View
@@ -66,7 +66,7 @@ export default function BillingScreen() {
                     alignItems: "center",
                 }}
             >
-                <Text style={{ fontWeight: "600", fontSize: 16 , color : "black"}}>
+                <Text style={{ fontWeight: "600", fontSize: 16, color: "black" }}>
                     {item.billNo}
                 </Text>
 
@@ -109,7 +109,7 @@ export default function BillingScreen() {
                         Recent Bills
                     </Text>
 
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         style={styles.refreshButton}
                         activeOpacity={0.85}
                         onPress={fetchBills}
@@ -117,7 +117,7 @@ export default function BillingScreen() {
                         <Text style={styles.refreshText}>
                             {loaded ? "Refresh" : "Load Bills"}
                         </Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
             </LinearGradient>
 
@@ -129,21 +129,21 @@ export default function BillingScreen() {
                         <Text
                             style={{
                                 textAlign: "center",
-                                marginTop: 40,
-                                color: "#666",
+                                marginTop: 160,
+                                color: "#898989",
+                                fontWeight: "500",
+                                fontSize: 18
                             }}
                         >
-                            Click "Load Bills" to view recent bills.
+                            "Refresh to load recent bills"
                         </Text>
                     )}
 
                     {/* 🔥 Loading */}
                     {loading && (
-                        <ActivityIndicator
-                            size="large"
-                            color="#EE5E1E"
-                            style={{ marginTop: 40 }}
-                        />
+                        <View style={{ flex: 1, justifyContent: "flex-start", alignItems: "center" }}>
+                            <ActivityIndicator size="large" color="#EE5E1E" />
+                        </View>
                     )}
 
                     {/* 🔥 No Bills Found */}
@@ -160,16 +160,24 @@ export default function BillingScreen() {
                     )}
 
                     {/* 🔥 Bills List */}
-                    {loaded && !loading && recentBills.length > 0 && (
-                        <FlatList
-                            data={recentBills}
-                            keyExtractor={(item, index) =>
-                                item._id?.toString() || item.billNo?.toString() || index.toString()
-                            }
-                            renderItem={renderBillItem}
-                            showsVerticalScrollIndicator={false}
-                        />
-                    )}
+                    <FlatList
+                        data={recentBills}
+                        keyExtractor={(item, index) =>
+                            item._id?.toString() || item.billNo?.toString() || index.toString()
+                        }
+                        renderItem={renderBillItem}
+                        showsVerticalScrollIndicator={false}
+                        refreshing={loading}
+                        onRefresh={fetchBills}
+
+                        ListEmptyComponent={
+                            !loading && loaded ? (
+                                <Text style={{ textAlign: "center", marginTop: 40, color: "#666" }}>
+                                    No recent bills found.
+                                </Text>
+                            ) : null
+                        }
+                    />
                 </View>
             </SafeAreaView>
         </>

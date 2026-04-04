@@ -12,6 +12,7 @@ import { Animated, Easing } from "react-native";
 import { SnackbarContext } from "../context/SnackbarContext";
 import PrinterSetupScreen from "./PrinterSetupScreen";
 import AddMenuScreen from "./AddMenuScreen";
+import { StatusBar } from 'react-native';
 
 
 export default function HomeScreen() {
@@ -139,6 +140,13 @@ export default function HomeScreen() {
 
     return (
         <>
+
+
+            <StatusBar
+                translucent
+                backgroundColor="transparent"
+                barStyle="light-content"
+            />
 
             {/* Header */}
             <LinearGradient

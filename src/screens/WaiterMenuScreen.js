@@ -77,24 +77,32 @@ export default function WaiterMenuScreen({ route, navigation }) {
                     { paddingTop: insets.top + 8 } // adjust 8 if needed
                 ]}
             >
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <MaterialIcons name="arrow-back" size={24} color="#fff" />
-                </TouchableOpacity>
+
                 <View style={styles.headerCenter}>
 
                     {orderType === "DINE-IN" ? (
-                        <>
-                            <View style={styles.sectionBadge}>
-                                <Text style={styles.badgeText}>{sectionName}</Text>
+                        <View style={styles.dineContainer}>
+
+                            {/* Section */}
+                            <View style={styles.infoCard}>
+                                <MaterialIcons name="storefront" size={16} color="#fff" />
+                                <Text style={styles.infoText}>{sectionName}</Text>
                             </View>
 
-                            <View style={styles.sectionBadge}>
-                                <Text style={styles.badgeText}>Table {tableNo}</Text>
+                            {/* Divider Dot */}
+                            <View style={styles.dot} />
+
+                            {/* Table */}
+                            <View style={styles.infoCard}>
+                                <MaterialIcons name="table-restaurant" size={16} color="#fff" />
+                                <Text style={styles.infoText}>Table {tableNo}</Text>
                             </View>
-                        </>
+
+                        </View>
                     ) : (
-                        <View style={styles.sectionBadge}>
-                            <Text style={styles.badgeText}>Takeaway Order</Text>
+                        <View style={styles.takeawayContainer}>
+                            <MaterialIcons name="takeout-dining" size={18} color="#fff" />
+                            <Text style={styles.takeawayText}>Takeaway Order</Text>
                         </View>
                     )}
 
@@ -152,10 +160,10 @@ export default function WaiterMenuScreen({ route, navigation }) {
                             options={{
                                 tabBarLabel: () => (
                                     <View style={{ alignItems: "center" }}>
-                                        <Text style={{ fontWeight: "bold" ,color :"black" }}>
+                                        <Text style={{ fontWeight: "bold", color: "black" }}>
                                             Cart ({cartCount})
                                         </Text>
-                                        <Text style={{ fontSize: 12, color: "green" ,fontWeight: "bold" }}>
+                                        <Text style={{ fontSize: 12, color: "green", fontWeight: "bold" }}>
                                             ₹{cartTotal}
                                         </Text>
                                     </View>
@@ -208,11 +216,12 @@ const styles = StyleSheet.create({
     headerCenter: {
         flexDirection: "row",
         gap: 8,
-        alignItems: "center"
+        alignItems: "center",
+        display: "flex",
+        justifyContent: "space-between"
     },
 
     sectionBadge: {
-        backgroundColor: "#fff",
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 40
@@ -227,6 +236,52 @@ const styles = StyleSheet.create({
 
     badgeText: {
         fontWeight: "bold",
-        color :"black"
-    }
+        color: "white",
+        fontSize: 16
+    },
+    dineContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(255,255,255,0.15)",
+        paddingHorizontal: 14,
+        paddingVertical: 6,
+        borderRadius: 30,
+    },
+
+    infoCard: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+
+    infoText: {
+        color: "#fff",
+        fontWeight: "600",
+        fontSize: 14,
+    },
+
+    dot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: "#fff",
+        marginHorizontal: 10,
+        opacity: 0.7,
+    },
+
+    takeawayContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(255,255,255,0.2)",
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        borderRadius: 30,
+        gap: 6,
+    },
+
+    takeawayText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 14,
+    },
 });
