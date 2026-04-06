@@ -319,11 +319,11 @@ export default function OrderForm({
     const handleAddAllToOrder = async () => {
         if (!selectedItems.length) return;
 
-        if (orderType === "TAKEAWAY" && !customerName.trim()) {
-            // Alert.alert("Customer name required");
-            showSnackbar("Customer name is required", "error");
-            return;
-        }
+        // if (orderType === "TAKEAWAY" && !customerName.trim()) {
+        //     // Alert.alert("Customer name required");
+        //     showSnackbar("Customer name is required", "error");
+        //     return;
+        // }
 
         const payload = {
             orderType,
@@ -749,13 +749,13 @@ export default function OrderForm({
                                     );
                                 })}
 
-                                <TextInput
+                                {/* <TextInput
                                     placeholder="KOT Message"
                                     placeholderTextColor="black"
                                     value={kotMessage}
                                     onChangeText={setKotMessage}
                                     style={styles.Nameinput}
-                                />
+                                /> */}
 
                                 {/* <View style={styles.totalBox}>
                                     <Text style={styles.totalText}>
