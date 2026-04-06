@@ -101,11 +101,12 @@ export const BillDesign = ({
             {/* 🔥 ORDER INFO */}
             <Text style={styles.leftText}>OrderType :{orderType}</Text>
 
-            {customerName && (
-                <Text style={styles.leftText}>
+            {customerName && customerName !== "Walk-in" && (
+                <Text style={[styles.leftText, { fontSize: 20 * scale }]}>
                     Customer Name: {customerName}
                 </Text>
             )}
+
 
             <Text style={styles.leftText}>
                 Date & Time: {formatTime()}
