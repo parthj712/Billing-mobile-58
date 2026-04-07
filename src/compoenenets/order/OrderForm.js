@@ -114,8 +114,8 @@ export default function OrderForm({
         if (!q) return filtered;
 
         return filtered?.filter((i) =>
-            i.name.toLowerCase().includes(q) ||
-            i.itemCode.toLowerCase().includes(q)
+            i.name?.toLowerCase()?.includes(q) ||
+            i.itemCode?.toLowerCase()?.includes(q)
         );
     }, [menuItems, search, category, subCategory]);
 
@@ -157,7 +157,8 @@ export default function OrderForm({
             return x.item.price.half;
         }
 
-        return x.item.price?.full || 0;
+        // return x.item.price?.full || 0;
+        return x?.item?.price?.full ?? 0;
     };
 
     // const handleSelectItem = (item) => {
@@ -188,15 +189,23 @@ export default function OrderForm({
     // };
 
     const handleSelectItem = (item) => {
+
+        if (!item || !item._id) {
+            console.log("Invalid item:", item);
+            return;
+        }
+
         if (item.priceType === "VARIANT" && item.variants?.length) {
             const firstVariant = item.variants[0];
+
+            if (!firstVariant) return; // ✅ prevent crash
 
             setSelectedItems((prev) => {
                 const existing = prev.find((x) => x.item._id === item._id);
 
                 if (existing) {
                     return prev.map((x) =>
-                        x.tempId === existing.tempId ? { ...x, qty: x.qty + 1 } : x,
+                        x.id === existing.id ? { ...x, qty: x.qty + 1 } : x,
                     );
                 }
 
@@ -402,7 +411,7 @@ export default function OrderForm({
 
 
     return (
-        <>
+        <View style={{ flex: 1 }}>
             <FlatList
                 key={numColumns}
                 data={filteredItems}
@@ -412,7 +421,7 @@ export default function OrderForm({
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ padding: 15, paddingBottom: insets.bottom + 10 }}
                 ListFooterComponentStyle={{ marginBottom: 40 }}
-                ListHeaderComponent={
+                ListHeaderComponent={() => (
                     <View>
                         <Text style={styles.title}>Add Order</Text>
 
@@ -445,15 +454,6 @@ export default function OrderForm({
                         {orderType === "TAKEAWAY" && shopData?.businessCategory === "BAKERY" && (
                             <View>
 
-
-                                {/* <TextInput
-                                    placeholder="Birthdate"
-                                    placeholderTextColor="black"
-                                    value={customerBirthDate}
-                                    onChangeText={setcustomerBirthDate}
-                                    style={styles.input}
-                                /> */}
-
                                 <TouchableOpacity
                                     onPress={() => setShowDatePicker(true)}
                                     style={styles.input}
@@ -463,21 +463,6 @@ export default function OrderForm({
                                     </Text>
                                 </TouchableOpacity>
 
-                                {/* {showDatePicker && (
-                                    <DateTimePicker
-                                        value={customerBirthDate ? new Date(customerBirthDate) : new Date()}
-                                        mode="date"
-                                        display="default"
-                                        onChange={(event, selectedDate) => {
-                                            setShowDatePicker(false);
-
-                                            if (selectedDate) {
-                                                const formatted = selectedDate.toISOString().split("T")[0]; // YYYY-MM-DD
-                                                setcustomerBirthDate(formatted);
-                                            }
-                                        }}
-                                    />
-                                )} */}
                             </View>
                         )}
 
@@ -549,62 +534,36 @@ export default function OrderForm({
                         )}
 
                         <Text style={styles.title}>
-                            {/* {showTables ? "Menu Items" : "Takeaway Order"} */}
                             Menu Items
                         </Text>
 
                     </View>
-                }
+                )}
                 renderItem={({ item }) => (
                     <TouchableOpacity
                         style={styles.menuCard}
                         onPress={() => handleSelectItem(item)}
                     >
                         <Text style={{ fontWeight: "600", fontSize: 14, color: "black" }}>
-                            {item.name}
+                            {item?.name || ""}
                         </Text>
-                        {/* <View>
-                            {item.priceType === "VARIANT" ? (
-                                <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 4 }}>
-                                    {item.variants?.map((v, i) => (
-                                        <Text key={i} style={{ fontSize: 12, marginRight: 8, color: "black" }}>
-                                            {v.name} (₹{v.price})
-                                        </Text>
-                                    ))}
-                                </View>
-                            ) : item.priceType === "HALF_FULL" ? (
-                                <Text style={{ fontSize: 13, color: "black" }}>
-                                    {item.price?.full !== undefined && `Full ₹${item.price.full}`}
-                                    {item.price?.half !== undefined && `  Half ₹${item.price.half}`}
-                                </Text>
-                            ) : (
-                                <Text style={{ fontSize: 13, color: "black" }}>
-                                    ₹ {item.price?.full ?? 0}
-                                </Text>
-                            )}
-                        </View> */}
                     </TouchableOpacity>
                 )}
 
 
-                ListFooterComponent={
-                    <View >
+                ListFooterComponent={() => (
+                    <View>
                         {selectedItems.length > 0 && (
-                            <View style={{
-                                shadowColor: "#000",
-                                shadowOpacity: 0.1,
-                                shadowRadius: 10,
-                                elevation: 3,
-                                backgroundColor: "#EEF2FF",
-                                borderColor: "#6366F1", marginVertical: 18, padding: 18, display: "flex", flexDirection: "column", borderRadius: 20
-                            }}>
-
-                                <Text style={styles.selectedHeaderText}>
-                                    Selected Items ({selectedItems.length})
-                                </Text>
-
+                            <View>
+                                {/* header */}
+                                <View style={styles.selectedHeader}>
+                                    <Text style={styles.selectedHeaderText}>
+                                        Selected Items ({selectedItems.length})
+                                    </Text>
+                                </View>
 
                                 {selectedItems.map((x) => {
+
                                     const unitPrice = getItemPrice(x);
 
                                     return (
@@ -626,7 +585,6 @@ export default function OrderForm({
                                                             ? ` (${x.portion})`
                                                             : ""} */}
                                                 </Text>
-
 
                                             </View>
 
@@ -749,32 +707,20 @@ export default function OrderForm({
                                     );
                                 })}
 
-                                {/* <TextInput
-                                    placeholder="KOT Message"
-                                    placeholderTextColor="black"
-                                    value={kotMessage}
-                                    onChangeText={setKotMessage}
-                                    style={styles.Nameinput}
-                                /> */}
 
-                                {/* <View style={styles.totalBox}>
-                                    <Text style={styles.totalText}>
-                                        {`Total Amount ₹ ${totalAmount}`}
-                                    </Text>
-                                </View> */}
 
                                 <TouchableOpacity
                                     style={styles.button}
                                     onPress={handleAddAllToOrder}
                                 >
-                                    <Text style={{ color: "#fff" }}>
+                                    <Text style={{ color: "#fff", fontWeight: "600" }}>
                                         Add All To Order
                                     </Text>
                                 </TouchableOpacity>
                             </View>
                         )}
                     </View>
-                }
+                )}
             />
 
 
@@ -869,7 +815,7 @@ export default function OrderForm({
                     }}
                 />
             )}
-        </>
+        </View>
     );
 }
 
@@ -923,7 +869,7 @@ const styles = StyleSheet.create({
     },
     row: {
         flexDirection: "row",
-        gap: 15,
+        justifyContent: "space-between",
         alignItems: "center",
         marginTop: 10,
     },
