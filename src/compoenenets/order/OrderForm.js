@@ -25,6 +25,8 @@ import { nanoid } from "nanoid/non-secure";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ActivityIndicator } from "react-native-paper";
 import { ScrollView } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 export default function OrderForm({
     tableId,
@@ -34,6 +36,10 @@ export default function OrderForm({
     onViewCart,
     onAddAllSuccess,   // ✅ ADD THIS
 }) {
+
+    const nameRef = useRef(null);
+    const mobileRef = useRef(null);
+
     const searchRef = useRef(null);
 
     const { showSnackbar } = useContext(SnackbarContext);
@@ -82,6 +88,13 @@ export default function OrderForm({
     useEffect(() => {
         fetchShopData();
     }, []);
+
+
+    useFocusEffect(
+        useCallback(() => {
+            setSelectedItems([]);   // 🔥 clears previous items
+        }, [orderType, tableId])
+    );
 
     const fetchMenu = async () => {
         try {
@@ -421,30 +434,37 @@ export default function OrderForm({
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ padding: 15, paddingBottom: insets.bottom + 10 }}
                 ListFooterComponentStyle={{ marginBottom: 40 }}
-                ListHeaderComponent={() => (
+
+                ListHeaderComponent={
                     <View>
                         <Text style={styles.title}>Add Order</Text>
 
                         {orderType === "TAKEAWAY" && (
                             <View>
                                 <TextInput
+                                    ref={nameRef}
+                                    placeholderTextColor="#6B7280"
                                     placeholder="Customer Name"
-                                    placeholderTextColor="black"
                                     value={customerName}
-                                    onChangeText={setCustomerName}
-                                    style={styles.Nameinput}
+                                    onChangeText={(text) => {
+                                        setCustomerName(text);
+                                        setTimeout(() => nameRef.current?.focus(), 0);
+                                    }}
+                                    style={[styles.Nameinput, { color: "#000" }]}
                                 />
 
                                 <TextInput
+                                    ref={mobileRef}
                                     placeholder="Enter mobile number"
-                                    placeholderTextColor="black"
+                                    placeholderTextColor="#6B7280"
                                     value={customerMobile}
                                     onChangeText={(text) => {
                                         if (/^\d{0,10}$/.test(text)) {
                                             setcustomerMobile(text);
+                                            setTimeout(() => mobileRef.current?.focus(), 0);
                                         }
                                     }}
-                                    style={styles.input}
+                                    style={[styles.input, { color: "#000" }]}
                                     keyboardType="phone-pad"
                                     maxLength={10}
                                 />
@@ -465,12 +485,11 @@ export default function OrderForm({
 
                             </View>
                         )}
-
                         <View style={styles.searchRow}>
                             <TextInput
                                 ref={searchRef}
                                 placeholder="Search item..."
-                                placeholderTextColor="black"
+                                placeholderTextColor="#6B7280"
                                 value={search}
                                 onChangeText={setSearch}
                                 style={styles.searchInput}
@@ -482,6 +501,7 @@ export default function OrderForm({
                                 activeOpacity={0.8}
                             >
                                 <MaterialIcons name="restaurant-menu" size={18} color="#fff" />
+
                             </TouchableOpacity>
 
                         </View>
@@ -538,7 +558,7 @@ export default function OrderForm({
                         </Text>
 
                     </View>
-                )}
+                }
                 renderItem={({ item }) => (
                     <TouchableOpacity
                         style={styles.menuCard}
@@ -770,6 +790,7 @@ export default function OrderForm({
                                     ]}
                                     onPress={() => {
                                         setCategory(cat);
+                                        setSubCategory("");   // ✅ IMPORTANT FIX
                                         setCategoryModalVisible(false);
                                     }}
                                 >
@@ -837,7 +858,6 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 8,
         borderWidth: 1,
-        marginBottom: 10,
         color: "black"
     },
     inputBirthday: {
@@ -845,7 +865,6 @@ const styles = StyleSheet.create({
         padding: 14,
         borderRadius: 8,
         borderWidth: 1,
-        marginBottom: 10,
         width: "100%"
     },
     menuCard: {
@@ -928,16 +947,18 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 12,
+        marginTop: 10
     },
 
     searchInput: {
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: "#FFFFFF",  // MUST
         paddingHorizontal: 16,
         paddingVertical: 6,
         borderRadius: 10,
         borderWidth: 1,
         borderColor: "#E2E8F0",
+        color: "#000000",
     },
 
     categoryButton: {
