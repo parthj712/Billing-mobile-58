@@ -102,7 +102,7 @@ export const BillDesign = ({
             <Text style={styles.leftText}>OrderType :{orderType}</Text>
 
             {customerName && customerName !== "Walk-in" && (
-                <Text style={[styles.leftText, { fontSize: 20 * scale }]}>
+                <Text style={[styles.leftText, { fontSize: 20 }]}>
                     Customer Name: {customerName}
                 </Text>
             )}
