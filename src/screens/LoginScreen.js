@@ -12,6 +12,8 @@ import {
     ImageBackground
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { Animated, Easing } from "react-native";
 
 export default function LoginScreen() {
     const { login } = useContext(AuthContext);
@@ -22,10 +24,15 @@ export default function LoginScreen() {
     });
 
     const [loading, setLoading] = useState(false);
+    const [focused, setFocused] = useState(null);
+
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (field, value) => {
         setFormData({ ...formData, [field]: value });
     };
+
+    const slideAnim = useState(new Animated.Value(0))[0];
 
     const validate = () => {
         if (!formData.userName) {
@@ -51,23 +58,39 @@ export default function LoginScreen() {
 
         try {
             setLoading(true);
+
+            // 🎬 Animate screen to left
+            Animated.timing(slideAnim, {
+                toValue: -400, // slide left
+                duration: 400,
+                easing: Easing.out(Easing.ease),
+                useNativeDriver: true,
+            }).start();
+
             await login(formData.userName, formData.password);
+
         } catch (error) {
             alert(
                 error?.response?.data?.message || "Invalid username, Password"
             );
+            slideAnim.setValue(0); // reset if error
         } finally {
             setLoading(false);
         }
     };
 
     return (
+
         <ImageBackground
             source={require("../../assets/login-bg-1.jpg")} // 🔥 your food image here
             style={styles.background}
             resizeMode="cover"
         >
-            <View style={styles.overlay}>
+            <View
+                style={[
+                    styles.overlay,
+                ]}
+            >
                 <KeyboardAvoidingView
                     style={{ flex: 1 }}
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -90,12 +113,15 @@ export default function LoginScreen() {
                                     placeholder="Username"
                                     placeholderTextColor="#94a3b8"
                                     value={formData.userName}
+                                    onFocus={() => setFocused("username")}
+                                    onBlur={() => setFocused(null)}
+                                    style={[
+                                        styles.input,
+                                        focused === "username" && styles.inputFocus
+                                    ]}
                                     onChangeText={(value) =>
                                         handleChange("userName", value)
                                     }
-                                    style={styles.input}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
                                 />
 
                                 {/* <TextInput
@@ -110,18 +136,32 @@ export default function LoginScreen() {
                                     maxLength={10}
                                 /> */}
 
-                                <TextInput
-                                    placeholder="Password"
-                                    placeholderTextColor="#94a3b8"
-                                    secureTextEntry
-                                    value={formData.password}
-                                    onChangeText={(value) =>
-                                        handleChange("password", value)
-                                    }
-                                    style={styles.input}
-                                />
+                                <View style={styles.passwordContainer}>
+                                    <TextInput
+                                        placeholder="Password"
+                                        placeholderTextColor="#94a3b8"
+                                        secureTextEntry={!showPassword}
+                                        value={formData.password}
+                                        onChangeText={(value) =>
+                                            handleChange("password", value)
+                                        }
+                                        style={styles.passwordInput}
+                                    />
+
+                                    <TouchableOpacity
+                                        onPress={() => setShowPassword(!showPassword)}
+                                        style={styles.eyeIcon}
+                                    >
+                                        <MaterialIcons
+                                            name={showPassword ? "visibility-off" : "visibility"}
+                                            size={22}
+                                            color={showPassword ? "#0f172a" : "#64748b"}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
 
                                 <TouchableOpacity
+                                    activeOpacity={0.85}
                                     style={[styles.button, loading && { opacity: 0.7 }]}
                                     onPress={handleLogin}
                                     disabled={loading}
@@ -140,6 +180,7 @@ export default function LoginScreen() {
                 </KeyboardAvoidingView>
             </View>
         </ImageBackground>
+
     );
 }
 
@@ -187,16 +228,15 @@ const styles = StyleSheet.create({
     },
 
     logo: {
-        fontSize: 22,
-        color: "#1e293b",
+        fontSize: 26,
+        color: "#0f172a",
         fontWeight: "800",
     },
 
     title: {
-        fontSize: 20,
-        color: "#1e293b",
+        fontSize: 18,
+        color: "#334155",
         fontWeight: "600",
-        marginTop: 2,
     },
 
     subtitle: {
@@ -216,24 +256,49 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#e2e8f0",
     },
-
     button: {
         backgroundColor: "#f59e0b",
         padding: 16,
-        borderRadius: 14,
+        borderRadius: 18,
         alignItems: "center",
-        marginTop: 10,
+        marginTop: 15,
 
         shadowColor: "#f59e0b",
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
         shadowOffset: { width: 0, height: 6 },
-        elevation: 5,
+        elevation: 6,
     },
 
     buttonText: {
         color: "#ffffff",
         fontWeight: "700",
         fontSize: 16,
+    },
+    passwordContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#ffffff",
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: "#e2e8f0",
+        marginBottom: 15,
+    },
+
+    passwordInput: {
+        flex: 1,
+        padding: 15,
+        color: "#0f172a",
+        fontWeight: "500",
+    },
+
+    eyeIcon: {
+        paddingHorizontal: 12,
+    },
+    inputFocus: {
+        borderColor: "#f59e0b",
+        shadowColor: "#f59e0b",
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
 });

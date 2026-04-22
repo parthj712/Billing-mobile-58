@@ -79,7 +79,7 @@ export const printBillSmart = async (
         console.log("✅ Printer connected");
 
         // 🔥 IMPORTANT FIX (RIGHT PLACE)
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // await new Promise(resolve => setTimeout(resolve, 500));
 
         const uri = await viewShotRef.current.capture({
             format: "png",

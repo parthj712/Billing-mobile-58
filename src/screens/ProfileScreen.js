@@ -75,15 +75,23 @@ export default function ProfileScreen() {
                         <Text style={styles.sectionTitle}>Account</Text>
 
                         <Card style={styles.card}>
-                            {/* <List.Item
-                                title="Email"
-                                description={user?.email || "Not Available"}
+
+                            <List.Item
+                                title="Shop Name"
+                                description={shopData?.shopName || "Not Available"}
                                 titleStyle={{ color: "black" }}
                                 descriptionStyle={{ color: "black" }}
-                                left={() => (
-                                    <List.Icon icon="email-outline" color="black" />
-                                )}
-                            /> */}
+                                left={() => <List.Icon icon="storefront-outline" color="black" />}
+                            />
+
+
+                            <List.Item
+                                title="Username"
+                                description={user?.userName || user?.email?.split("@")[0] || "Not Available"}
+                                titleStyle={{ color: "black" }}
+                                descriptionStyle={{ color: "black" }}
+                                left={() => <List.Icon icon="account-circle-outline" color="black" />}
+                            />
 
                             <List.Item
                                 title="Role"
@@ -92,6 +100,8 @@ export default function ProfileScreen() {
                                 descriptionStyle={{ color: "black" }}
                                 left={() => <List.Icon icon="account-outline" color="black" />}
                             />
+
+
                         </Card>
 
 
@@ -112,7 +122,7 @@ export default function ProfileScreen() {
 
                             <List.Item
                                 title="App Version"
-                                description="1.0.0"
+                                description="1.1.0"
                                 titleStyle={{ color: "black" }}
                                 descriptionStyle={{ color: "black" }}
                                 left={() => <List.Icon icon="information-outline" color="black" />}
@@ -204,7 +214,7 @@ export default function ProfileScreen() {
                         </TouchableOpacity>
 
                         {/* Printer Setup Screen */}
-                        <PrinterSetupScreen />
+                        <PrinterSetupScreen closeModal={() => setPrinterVisible(false)} />
 
                     </View>
                 </View>

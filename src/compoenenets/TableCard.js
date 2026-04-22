@@ -1,7 +1,7 @@
 import React from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 
-export default function TableCard({ table, onPress }) {
+export default function TableCard({ table, onPress, onLongPress }) {
   const isOccupied = table.status === "OCCUPIED";
 
   const getRunningTime = () => {
@@ -23,6 +23,7 @@ export default function TableCard({ table, onPress }) {
         isOccupied ? styles.occupied : styles.available,
       ]}
       onPress={onPress}
+      onLongPress={() => onLongPress(table)}   // 👈 ADD THIS
     >
       <Text style={styles.tableNo}> Table No.{table.tableNo}</Text>
 
@@ -49,25 +50,23 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 8,
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: "flex-start",
     justifyContent: "center",
-    elevation: 2,
+    elevation: 1,
   },
   available: {
     backgroundColor: "#e6fffa",
-    borderWidth: 0.5,
-    borderColor: "#16a34a",
+
   },
   occupied: {
     backgroundColor: "#ffe6e6",
-    borderWidth: 0.5,
-    borderColor: "#dc2626",
+
   },
   tableNo: {
     fontSize: 18,
     fontWeight: "bold",
-    color : "black"
+    color: "black"
   },
   statusBadge: {
     marginTop: 8,
@@ -79,12 +78,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#bbf7d0",
   },
   badgeRed: {
-    backgroundColor: "#fecaca",
+    backgroundColor: "#ffbaba",
   },
   statusText: {
     fontSize: 12,
     fontWeight: "600",
-    color : "black"
+    color: "black"
   },
   timeText: {
     marginTop: 6,
