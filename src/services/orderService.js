@@ -16,7 +16,7 @@ export const fetchActiveOrder = async (tableId) => {
     return await API.get(`/orders/active?tableId=${tableId}`);
 };
 
-export const addTakeawayOrder = async (payload) => {    
+export const addTakeawayOrder = async (payload) => {
     return await API.post("/orders/takeaway", payload);
 };
 

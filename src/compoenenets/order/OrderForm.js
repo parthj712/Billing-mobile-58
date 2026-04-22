@@ -174,54 +174,178 @@ export default function OrderForm({
         return x?.item?.price?.full ?? 0;
     };
 
+
     // const handleSelectItem = (item) => {
-    //     setSelectedItems((prev) => {
-    //         const existing = prev.find(
-    //             (x) => x.item._id === item._id && x.portion === "full"
-    //         );
 
-    //         if (existing) {
-    //             return prev.map((x) =>
-    //                 x.id === existing.id ? { ...x, qty: x.qty + 1 } : x
+    //     if (!item || !item._id) {
+    //         console.log("Invalid item:", item);
+    //         return;
+    //     }
+
+    //     if (item.priceType === "VARIANT" && item.variants?.length) {
+    //         const firstVariant = item.variants[0];
+
+    //         if (!firstVariant) return; // ✅ prevent crash
+
+    //         setSelectedItems((prev) => {
+    //             const existing = prev.find((x) => x.item._id === item._id);
+
+    //             if (existing) {
+    //                 return prev.map((x) =>
+    //                     x.id === existing.id ? { ...x, qty: x.qty + 1 } : x,
+    //                 );
+    //             }
+
+    //             return [
+    //                 ...prev,
+    //                 {
+    //                     id: nanoid(),
+    //                     item,
+    //                     variantName: firstVariant.name,
+    //                     variantPrice: firstVariant.price,
+    //                     portion: null,
+    //                     qty: 1,
+    //                 },
+    //             ];
+    //         });
+    //     }
+
+    //     else if (item.priceType === "HALF_FULL") {
+    //         setSelectedItems((prev) => {
+    //             const existing = prev.find(
+    //                 (x) =>
+    //                     x.item._id === item._id &&
+    //                     x.portion === "full"
     //             );
-    //         }
 
-    //         return [
-    //             ...prev,
-    //             {
-    //                 id: Date.now().toString(),
-    //                 item,
-    //                 qty: 1,
-    //                 portion: "full",
-    //             },
-    //         ];
-    //     });
+    //             if (existing) {
+    //                 return prev.map((x) =>
+    //                     x.id === existing.id ? { ...x, qty: x.qty + 1 } : x
+    //                 );
+    //             }
+
+    //             return [
+    //                 ...prev,
+    //                 {
+    //                     id: Date.now().toString(),
+    //                     item,
+    //                     portion: "full",
+    //                     variantName: null,
+    //                     variantPrice: null,
+    //                     qty: 1,
+    //                 },
+    //             ];
+    //         });
+    //     }
+
+    //     else {
+    //         setSelectedItems((prev) => {
+    //             const existing = prev.find(
+    //                 (x) => x.item._id === item._id
+    //             );
+
+    //             if (existing) {
+    //                 return prev.map((x) =>
+    //                     x.id === existing.id ? { ...x, qty: x.qty + 1 } : x
+    //                 );
+    //             }
+
+    //             return [
+    //                 ...prev,
+    //                 {
+    //                     id: Date.now().toString(),
+    //                     item,
+    //                     portion: null,
+    //                     variantName: null,
+    //                     variantPrice: item.price?.full,
+    //                     qty: 1,
+    //                 },
+    //             ];
+    //         });
+    //     }
 
     //     setSearch("");
-    //     searchRef.current?.focus();
+    //     // searchRef.current?.focus();
     // };
 
+    // const handleSelectItem = (item) => {
+    //     if (!item || !item._id) return;
+
+    //     // ✅ ALWAYS ADD NEW ITEM (no merge)
+
+    //     if (item.priceType === "VARIANT" && item.variants?.length) {
+    //         const firstVariant = item.variants[0];
+
+    //         setSelectedItems((prev) => [
+    //             ...prev,
+    //             {
+    //                 id: nanoid(),
+    //                 item,
+    //                 variantName: firstVariant.name,
+    //                 variantPrice: firstVariant.price,
+    //                 portion: null,
+    //                 qty: 1,
+    //             },
+    //         ]);
+    //     }
+
+    //     else if (item.priceType === "HALF_FULL") {
+    //         setSelectedItems((prev) => [
+    //             ...prev,
+    //             {
+    //                 id: nanoid(),
+    //                 item,
+    //                 portion: "full",
+    //                 variantName: null,
+    //                 variantPrice: null,
+    //                 qty: 1,
+    //             },
+    //         ]);
+    //     }
+
+    //     else {
+    //         setSelectedItems((prev) => [
+    //             ...prev,
+    //             {
+    //                 id: nanoid(),
+    //                 item,
+    //                 portion: null,
+    //                 variantName: null,
+    //                 variantPrice: item.price?.full,
+    //                 qty: 1,
+    //             },
+    //         ]);
+    //     }
+
+    //     setSearch("");
+    // };
+
+
+
     const handleSelectItem = (item) => {
+        if (!item || !item._id) return;
 
-        if (!item || !item._id) {
-            console.log("Invalid item:", item);
-            return;
-        }
-
+        // ✅ VARIANT ITEM
         if (item.priceType === "VARIANT" && item.variants?.length) {
             const firstVariant = item.variants[0];
 
-            if (!firstVariant) return; // ✅ prevent crash
-
             setSelectedItems((prev) => {
-                const existing = prev.find((x) => x.item._id === item._id);
+                const existing = prev.find(
+                    (x) =>
+                        x.item._id === item._id &&
+                        x.variantName === firstVariant.name   // 🔥 KEY LOGIC
+                );
 
+                // ✅ SAME VARIANT → increase qty
                 if (existing) {
                     return prev.map((x) =>
-                        x.id === existing.id ? { ...x, qty: x.qty + 1 } : x,
+                        x.id === existing.id
+                            ? { ...x, qty: x.qty + 1 }
+                            : x
                     );
                 }
 
+                // ✅ DIFFERENT VARIANT → new row
                 return [
                     ...prev,
                     {
@@ -236,6 +360,7 @@ export default function OrderForm({
             });
         }
 
+        // ✅ HALF/FULL ITEM
         else if (item.priceType === "HALF_FULL") {
             setSelectedItems((prev) => {
                 const existing = prev.find(
@@ -246,14 +371,16 @@ export default function OrderForm({
 
                 if (existing) {
                     return prev.map((x) =>
-                        x.id === existing.id ? { ...x, qty: x.qty + 1 } : x
+                        x.id === existing.id
+                            ? { ...x, qty: x.qty + 1 }
+                            : x
                     );
                 }
 
                 return [
                     ...prev,
                     {
-                        id: Date.now().toString(),
+                        id: nanoid(),
                         item,
                         portion: "full",
                         variantName: null,
@@ -264,6 +391,7 @@ export default function OrderForm({
             });
         }
 
+        // ✅ NORMAL ITEM
         else {
             setSelectedItems((prev) => {
                 const existing = prev.find(
@@ -272,14 +400,16 @@ export default function OrderForm({
 
                 if (existing) {
                     return prev.map((x) =>
-                        x.id === existing.id ? { ...x, qty: x.qty + 1 } : x
+                        x.id === existing.id
+                            ? { ...x, qty: x.qty + 1 }
+                            : x
                     );
                 }
 
                 return [
                     ...prev,
                     {
-                        id: Date.now().toString(),
+                        id: nanoid(),
                         item,
                         portion: null,
                         variantName: null,
@@ -291,7 +421,6 @@ export default function OrderForm({
         }
 
         setSearch("");
-        // searchRef.current?.focus();
     };
 
     const updateQty = (id, qty) => {
@@ -1022,7 +1151,8 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginVertical: 12,
         borderWidth: 1,
-        borderColor: "#E2E8F0"
+        borderColor: "#E2E8F0",
+        
     },
 
     selectedHeaderText: {

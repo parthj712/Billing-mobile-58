@@ -6,6 +6,7 @@ import {
     FlatList,
     ActivityIndicator,
     StyleSheet,
+    Alert,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "react-native-paper";
@@ -13,6 +14,9 @@ import LinearGradient from "react-native-linear-gradient";
 import TableCard from "../compoenenets/TableCard";
 import { getTables } from "../services/tableService";
 import { Menu, Button } from "react-native-paper";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { updateTableStatus } from "../services/tableService";
+import { Modal, TouchableOpacity } from "react-native";
 
 export default function TablesScreen({ navigation }) {
 
@@ -25,6 +29,8 @@ export default function TablesScreen({ navigation }) {
     const [menuVisible, setMenuVisible] = useState(false);
 
 
+    const [actionModal, setActionModal] = useState(false);
+    const [selectedTable, setSelectedTable] = useState(null);
 
 
 
@@ -74,6 +80,43 @@ export default function TablesScreen({ navigation }) {
         selectedSection === "All" ? true : name === selectedSection
     );
 
+    // const handleTableStatusChange = (table) => {
+    //     Alert.alert(
+    //         `Table ${table.tableNo}`,
+    //         "Select Action",
+    //         [
+    //             {
+    //                 text: "Mark as Available",
+    //                 onPress: () => updateStatus(table._id, "AVAILABLE"),
+    //             },
+    //             {
+    //                 text: "Mark as Occupied",
+    //                 onPress: () => updateStatus(table._id, "OCCUPIED"),
+    //             },
+    //             { text: "Cancel", style: "cancel" },
+    //         ]
+    //     );
+    // };
+
+
+    const handleTableStatusChange = (table) => {
+        setSelectedTable(table);
+        setActionModal(true);
+    };
+
+
+    const updateStatus = async (tableId, status) => {
+        try {
+            await updateTableStatus(tableId, status);
+
+            // refresh UI
+            fetchTables();
+
+        } catch (err) {
+            console.log("Update failed", err);
+        }
+    };
+
 
     return (
         <>
@@ -88,9 +131,13 @@ export default function TablesScreen({ navigation }) {
             >
                 <View style={styles.headerRow}>
                     <Text style={styles.title}>Tables</Text>
-                    <Text style={styles.activeBadge}>
-                        {totalActiveTables} Active
-                    </Text>
+
+                    <View style={styles.activeContainer}>
+                        <MaterialIcons name="event-seat" size={16} color="#fff" />
+                        <Text style={styles.activeText}>
+                            {totalActiveTables} Active
+                        </Text>
+                    </View>
                 </View>
             </LinearGradient>
 
@@ -163,6 +210,7 @@ export default function TablesScreen({ navigation }) {
                                                             sectionName: item.sectionId?.name,
                                                         })
                                                     }
+                                                    onLongPress={handleTableStatusChange}   // 👈 ADD
                                                 />
                                             )}
                                         />
@@ -175,6 +223,51 @@ export default function TablesScreen({ navigation }) {
 
 
 
+                <Modal visible={actionModal} transparent animationType="slide">
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContainer}>
+
+                            {/* Header */}
+                            <Text style={styles.modalTitle}>
+                                Table {selectedTable?.tableNo}
+                            </Text>
+                            <Text style={styles.modalSubtitle}>Choose Action</Text>
+
+                            {/* Buttons */}
+                            <View style={{ display: "flex", flexDirection: "row", gap: 12, justifyContent: "center" }}>
+
+                                <TouchableOpacity
+                                    style={[styles.actionBtn, styles.greenBtn]}
+                                    onPress={() => {
+                                        updateStatus(selectedTable._id, "AVAILABLE");
+                                        setActionModal(false);
+                                    }}
+                                >
+                                    <Text style={styles.actionText}>Mark as Available</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.actionBtn, styles.redBtn]}
+                                    onPress={() => {
+                                        updateStatus(selectedTable._id, "OCCUPIED");
+                                        setActionModal(false);
+                                    }}
+                                >
+                                    <Text style={styles.actionText}>Mark as Occupied</Text>
+                                </TouchableOpacity>
+
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.cancelBtn}
+                                onPress={() => setActionModal(false)}
+                            >
+                                <Text style={styles.cancelText}>Cancel</Text>
+                            </TouchableOpacity>
+
+                        </View>
+                    </View>
+                </Modal>
 
             </SafeAreaView>
         </>
@@ -251,5 +344,86 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "700"
     },
+    activeContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(255,255,255,0.2)", // 👈 glass effect like order form
+        paddingHorizontal: 14,
+        paddingVertical: 6,
+        borderRadius: 30,
+        gap: 6,
+    },
 
-});
+    activeText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 14,
+    },
+
+
+
+
+
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.4)",
+        justifyContent: "flex-end",
+    },
+
+    modalContainer: {
+        backgroundColor: "#fff",
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 20,
+    },
+
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: "700",
+        textAlign: "center",
+        color: "#0f172a",
+    },
+
+    modalSubtitle: {
+        textAlign: "center",
+        color: "#64748B",
+        marginBottom: 20,
+    },
+
+    actionBtn: {
+        padding: 16,
+        borderRadius: 18,
+        marginBottom: 12,
+        alignItems: "center",
+    },
+
+    greenBtn: {
+        backgroundColor: "#c6ffe5",
+
+    },
+
+    redBtn: {
+        backgroundColor: "#ffd3d3",
+    },
+
+    actionText: {
+        fontWeight: "600",
+        fontSize: 15,
+        color: "#111",
+        fontWeight: "700",
+    },
+
+    cancelBtn: {
+        marginTop: 10,
+        padding: 14,
+        alignItems: "center",
+        backgroundColor: "#f1f7ff",
+        borderRadius: 14,
+    },
+
+    cancelText: {
+        color: "#272e37",
+        fontWeight: "600",
+        fontWeight: "700",
+    },
+}); 

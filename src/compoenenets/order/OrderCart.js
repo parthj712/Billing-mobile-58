@@ -61,6 +61,8 @@ export default function OrderCart({
     const billingPrinter = printerSettings?.billingPrinter;
     const kotPrinter = printerSettings?.kotPrinter || billingPrinter;
 
+    const paperWidthDots = printerSettings?.paperWidthDots || 576; // 384 default
+
     const [confirmVisible, setConfirmVisible] = useState(false);
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -68,7 +70,12 @@ export default function OrderCart({
     const [customerName, setCustomerName] = useState("");
 
 
+    const [paymentMethod, setPaymentMethod] = useState("CASH");
+
+
     const [feedbackUrl, setFeedbackUrl] = useState(null);
+
+    const [discountPercent, setDiscountPercent] = useState(0);
 
 
     const fetchFeedbackLink = async () => {
@@ -219,7 +226,7 @@ export default function OrderCart({
             });
 
             loadOrder();
-              showSnackbar("Item quantity decreased", "success")
+            showSnackbar("Item quantity decreased", "success");
         } catch (err) {
             showSnackbar("Failed to decrease item", "error");
         }
@@ -259,10 +266,49 @@ export default function OrderCart({
     const hasVAT = !!shopData?.vatNumber;
     console.log("hasVAT", hasVAT)
 
-    const gst = hasGST ? foodSubtotal * (GST_PERCENT / 100) : 0;
-    const vat = hasVAT ? liquorSubtotal * (VAT_PERCENT / 100) : 0;
+    // const gst = hasGST ? foodSubtotal * (GST_PERCENT / 100) : 0;
 
-    const total = subtotal + gst + vat;
+    // const cgst = hasGST ? foodSubtotal * (GST_PERCENT / 2 / 100) : 0;
+    // const sgst = hasGST ? foodSubtotal * (GST_PERCENT / 2 / 100) : 0;
+
+    // const gst = cgst + sgst; // total GST
+    // const vat = hasVAT ? liquorSubtotal * (VAT_PERCENT / 100) : 0;
+
+    // // 🔥 ROUND OFF
+    // const discountAmount = subtotal * (discountPercent / 100);
+
+    // const rawTotal = subtotal + gst + vat - discountAmount;
+
+    // const roundedTotal = Math.round(rawTotal);
+    // const roundOff = roundedTotal - rawTotal;
+
+    // const total = roundedTotal;
+
+    // const vat = hasVAT ? liquorSubtotal * (VAT_PERCENT / 100) : 0;
+
+    // const total = subtotal + gst + vat;
+
+
+    // Step 1: Discount first
+    const discountAmount = subtotal * (discountPercent / 100);
+
+    const discountedSubtotal = subtotal - discountAmount;
+
+    // Step 2: Apply tax on discounted amount
+    const cgst = hasGST ? discountedSubtotal * (GST_PERCENT / 2 / 100) : 0;
+    const sgst = hasGST ? discountedSubtotal * (GST_PERCENT / 2 / 100) : 0;
+
+    const gst = cgst + sgst;
+
+    const vat = hasVAT ? discountedSubtotal * (VAT_PERCENT / 100) : 0;
+
+    // Step 3: Final
+    const rawTotal = discountedSubtotal + gst + vat;
+
+    const roundedTotal = Math.round(rawTotal);
+    const roundOff = roundedTotal - rawTotal;
+
+    const total = roundedTotal;
 
     // 🔥 Print KOT
     const handlePrintKOT = async () => {
@@ -312,7 +358,7 @@ export default function OrderCart({
         try {
             setLoading(true);
 
-            await finalizeBillAndOrder({ tableId, orderType });
+            await finalizeBillAndOrder({ tableId, orderType, paymentMethod });
 
 
             // await printBillBluetooth(
@@ -341,7 +387,7 @@ export default function OrderCart({
 
             } else {
 
-                await printBillSmart(
+                printBillSmart(
                     tableNo,
                     cartItems,
                     subtotal,
@@ -380,12 +426,30 @@ export default function OrderCart({
             highlight && styles.newItemRow   // 🔥 ADD THIS
         ]}>
             <View>
-                <Text style={styles.itemName}>
-                    {item.name}
-                    {item.variantName && ` (${item.variantName})`}
-                    {item.portion && ` (${item.portion})`}
+                <View>
+                    <Text style={styles.itemName}>
+                        {item.name}
+                    </Text>
+
+
+                    {item.variantName && (
+                        <Text style={styles.subText}>
+                            {item.variantName}
+                        </Text>
+
+
+                    )}
+
+                    {item.portion && (
+                        <Text style={styles.subText}>
+                            {item.portion}
+                        </Text>
+                    )}
+                </View>
+                <Text style={styles.qtyText}>
+                    Qty : {item.qty} • ₹{item.price}
                 </Text>
-                <Text style={styles.itemPrice}>₹ {item.price}</Text>
+
 
                 {highlight && (
                     <Text style={styles.newTag}>NEW ITEM</Text>
@@ -393,16 +457,19 @@ export default function OrderCart({
             </View>
 
             <View style={styles.qtyBox}>
-                <TouchableOpacity onPress={() => decreaseQty(item)}>
-                    <MaterialIcons name="remove" size={20} color="black" />
+                <TouchableOpacity
+                    onPress={() => decreaseQty(item)}   // or deleteItem(item)
+                    style={styles.deleteBtn}
+                >
+                    <MaterialIcons name="delete-outline" size={18} color="#DC2626" />
                 </TouchableOpacity>
 
-                <Text style={styles.qtyText}>{item.qty}</Text>
 
-                <TouchableOpacity onPress={() => increaseQty(item)}>
+                {/* <TouchableOpacity onPress={() => increaseQty(item)}>
                     <MaterialIcons name="add" size={20} color="black" />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
             </View>
+
         </View>
     );
 
@@ -440,14 +507,13 @@ export default function OrderCart({
 
                 {newItems.length > 0 && (
                     <>
-                        <View style={styles.divider} />
-                        <Text style={styles.newItemsTitle}>
+                        {/* <Text style={styles.newItemsTitle}>
                             New Items
-                        </Text>
+                        </Text> */}
 
 
                         {newItems.map((item) => renderItem(item, true))}
-                        <View style={styles.divider} />
+                        {/* <View style={styles.divider} /> */}
                     </>
                 )}
 
@@ -455,18 +521,25 @@ export default function OrderCart({
                 {printedItems.map((item) => renderItem(item, false))}
 
 
-
-                <View style={styles.totalBox}>
+                {/* subtotal box */}
+                {/* <View style={styles.totalBox}>
                     <View style={styles.rowBetween}>
                         <Text style={{ color: "black" }}>Subtotal</Text>
                         <Text style={{ color: "black" }}>₹ {subtotal.toFixed(2)}</Text>
                     </View>
 
                     {foodSubtotal > 0 && hasGST && (
-                        <View style={styles.rowBetween}>
-                            <Text style={{ color: "black" }}>GST (5%)</Text>
-                            <Text style={{ color: "black" }}>₹ {gst.toFixed(2)}</Text>
-                        </View>
+                        <>
+                            <View style={styles.rowBetween}>
+                                <Text style={{ color: "black" }}>CGST (2.5%)</Text>
+                                <Text style={{ color: "black" }}>₹ {cgst.toFixed(2)}</Text>
+                            </View>
+
+                            <View style={styles.rowBetween}>
+                                <Text style={{ color: "black" }}>SGST (2.5%)</Text>
+                                <Text style={{ color: "black" }}>₹ {sgst.toFixed(2)}</Text>
+                            </View>
+                        </>
                     )}
 
                     {liquorSubtotal > 0 && hasVAT && (
@@ -476,7 +549,25 @@ export default function OrderCart({
                         </View>
                     )}
 
-                    <View style={styles.totalDivider} />
+
+
+                    {roundOff !== 0 && (
+                        <View>
+                            <View style={styles.totalDivider} />
+
+                            <View style={styles.rowBetween}>
+                                <Text style={{ color: "black" }}>Round Off</Text>
+                                <Text style={{ color: "black" }}>
+                                    ₹ {roundOff > 0 ? "+" : ""}
+                                    {roundOff.toFixed(2)}
+                                </Text>
+                            </View>
+
+                            <View style={styles.totalDivider} />
+                        </View>
+                    )}
+
+
 
                     <View style={styles.rowBetween}>
                         <Text style={styles.totalText}>
@@ -486,7 +577,7 @@ export default function OrderCart({
                             ₹ {total.toFixed(2)}
                         </Text>
                     </View>
-                </View>
+                </View> */}
             </ScrollView>
 
 
@@ -499,7 +590,7 @@ export default function OrderCart({
                             style={styles.secondaryBtn}
                             onPress={handlePrintKOT}
                         >
-                            <Text style={{ color: "#1E293B", fontWeight: "bold" }}>Print KOT</Text>
+                            <Text style={{ color: "#fff", fontWeight: "bold" }}>Send to Kitchen</Text>
                         </TouchableOpacity>
                     )}
 
@@ -507,55 +598,260 @@ export default function OrderCart({
                         style={styles.primaryBtn}
                         onPress={() => setConfirmVisible(true)}
                     >
-                        <Text style={{ color: "#fff" }}>
+                        <Text style={{ color: "#fff", fontWeight: "bold" }}>
                             Proceed To Billing
                         </Text>
                     </TouchableOpacity>
                 </View>
             )}
 
+
+            {/* //confiirm billing modal */}
             <Modal visible={confirmVisible} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalBox}>
 
-                        {/* Header */}
-                        <Text style={styles.modalTitle}>
-                            Confirm Billing
-                        </Text>
+                        <ScrollView
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{ paddingBottom: 20 }}
+                        >
 
-                        {/* Divider */}
-                        <View style={styles.divider} />
-
-                        {/* Total Section */}
-                        <View style={styles.totalContainer}>
-                            <Text style={styles.totalLabel}>Grand Total</Text>
-                            <Text style={styles.totalAmount}>
-                                ₹ {total.toFixed(2)}
+                            {/* Header */}
+                            <Text style={styles.modalTitle}>
+                                Confirm Billing
                             </Text>
-                        </View>
 
-                        {/* Buttons */}
-                        <View style={styles.buttonRow}>
+                            {/* Divider */}
+                            <View style={styles.divider} />
 
-                            <TouchableOpacity
-                                style={styles.cancelBtn}
-                                onPress={() => setConfirmVisible(false)}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.cancelText}>Cancel</Text>
-                            </TouchableOpacity>
+                            <Text style={{ fontWeight: "bold", marginBottom: 10, color: "black" }}>
+                                Select Discount
+                            </Text>
 
-                            <TouchableOpacity
-                                style={styles.confirmBtn}
-                                onPress={handleConfirmBilling}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.confirmText}>
-                                    Confirm & Print
+                            <View style={{ flexDirection: "row", gap: 10, marginBottom: 20 }}>
+                                {[0, 5, 10, 15].map((percent) => {
+                                    const isSelected = discountPercent === percent;
+
+                                    return (
+                                        <TouchableOpacity
+                                            key={percent}
+                                            onPress={() => setDiscountPercent(percent)}
+                                            style={{
+                                                paddingVertical: 8,
+                                                paddingHorizontal: 12,
+                                                borderRadius: 10,
+
+                                                backgroundColor: isSelected ? "#0F172A" : "#F1F5F9",
+
+                                                shadowColor: "#000",
+                                                shadowOpacity: 0.1,
+                                                shadowRadius: 4,
+                                                elevation: 2,
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: isSelected ? "#fff" : "#334155",
+                                                    fontWeight: "600",
+                                                    fontSize: 12
+                                                }}
+                                            >
+                                                {percent === 0 ? "No Disc" : `${percent}%`}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+
+
+                            <View style={{
+                                backgroundColor: "#F8FAFC",
+                                borderRadius: 16,
+                                padding: 16,
+                                marginBottom: 20
+                            }}>
+
+                                {/* Subtotal */}
+                                <View style={styles.rowBetween}>
+                                    <Text style={{ color: "black" }}>Subtotal</Text>
+                                    <Text style={{ color: "black" }}>₹ {subtotal.toFixed(2)}</Text>
+                                </View>
+
+                                {/* Discount */}
+                                {discountPercent > 0 && (
+                                    <View style={styles.rowBetween}>
+                                        <Text style={{ color: "red" }}>
+                                            Discount ({discountPercent}%)
+                                        </Text>
+                                        <Text style={{ color: "red" }}>
+                                            -₹ {discountAmount.toFixed(2)}
+                                        </Text>
+                                    </View>
+                                )}
+
+                                {/* Divider */}
+                                <View style={styles.totalDivider} />
+
+                                {/* CGST */}
+                                {cgst > 0 && (
+                                    <View style={styles.rowBetween}>
+                                        <Text>CGST (2.5%)</Text>
+                                        <Text>₹ {cgst.toFixed(2)}</Text>
+                                    </View>
+                                )}
+
+                                {/* SGST */}
+                                {sgst > 0 && (
+                                    <View style={styles.rowBetween}>
+                                        <Text>SGST (2.5%)</Text>
+                                        <Text>₹ {sgst.toFixed(2)}</Text>
+                                    </View>
+                                )}
+
+                                {/* VAT */}
+                                {vat > 0 && (
+                                    <View style={styles.rowBetween}>
+                                        <Text>VAT (10%)</Text>
+                                        <Text>₹ {vat.toFixed(2)}</Text>
+                                    </View>
+                                )}
+
+                                {/* Round Off */}
+                                {roundOff !== 0 && (
+                                    <View style={styles.rowBetween}>
+                                        <Text>Round Off</Text>
+                                        <Text>
+                                            ₹ {roundOff > 0 ? "+" : ""}
+                                            {roundOff.toFixed(2)}
+                                        </Text>
+                                    </View>
+                                )}
+
+                                {/* Divider */}
+                                <View style={styles.totalDivider} />
+
+                                {/* Grand Total */}
+                                <View style={styles.rowBetween}>
+                                    <Text style={{ fontWeight: "bold", fontSize: 18 }}>
+                                        Grand Total
+                                    </Text>
+                                    <Text style={{
+                                        fontWeight: "800",
+                                        fontSize: 22,
+                                        color: "#EA580C"
+                                    }}>
+                                        ₹ {total.toFixed(2)}
+                                    </Text>
+                                </View>
+
+                            </View>
+
+
+                            <Text style={{ fontWeight: "bold", marginBottom: 10, color: "black" }}>
+                                Payment Method
+                            </Text>
+
+                            <View style={{ flexDirection: "row", gap: 10, marginBottom: 20 }}>
+
+                                {/* CASH */}
+                                <TouchableOpacity
+                                    onPress={() => setPaymentMethod("CASH")}
+                                    style={{
+                                        flex: 1,
+                                        padding: 12,
+                                        borderRadius: 10,
+                                        borderWidth: 2,
+                                        borderColor: paymentMethod === "CASH" ? "green" : "#ccc",
+                                        backgroundColor: paymentMethod === "CASH" ? "#ECFDF5" : "#fff",
+                                        alignItems: "center"
+
+                                    }}
+                                >
+                                    <Text style={{ fontSize: 18 }}>💵</Text>
+                                    <Text style={{ fontWeight: "bold", color: "black" }}>Cash</Text>
+                                </TouchableOpacity>
+
+                                {/* UPI */}
+                                <TouchableOpacity
+                                    onPress={() => setPaymentMethod("UPI")}
+                                    style={{
+                                        flex: 1,
+                                        padding: 12,
+                                        borderRadius: 10,
+                                        borderWidth: 2,
+                                        borderColor: paymentMethod === "UPI" ? "#2563eb" : "#ccc",
+                                        backgroundColor: paymentMethod === "UPI" ? "#EFF6FF" : "#fff",
+                                        alignItems: "center"
+                                    }}
+                                >
+                                    <Text style={{ fontSize: 18 }}>📱</Text>
+                                    <Text style={{ fontWeight: "bold", color: "black" }}>UPI</Text>
+                                </TouchableOpacity>
+
+                                {/* CARD */}
+                                <TouchableOpacity
+                                    onPress={() => setPaymentMethod("CARD")}
+                                    style={{
+                                        flex: 1,
+                                        padding: 12,
+                                        borderRadius: 10,
+                                        borderWidth: 2,
+                                        borderColor: paymentMethod === "CARD" ? "#9333EA" : "#ccc",  // ✅ FIX
+                                        backgroundColor: paymentMethod === "CARD" ? "#F3E8FF" : "#fff", // ✅ FIX
+                                        alignItems: "center"
+                                    }}
+                                >
+                                    <Text style={{ fontSize: 18 }}>💳</Text>
+                                    <Text style={{ fontWeight: "bold", color: "black" }}>CARD</Text>
+                                </TouchableOpacity>
+
+                            </View>
+
+                            {/* Total Section */}
+                            <View style={{
+                                backgroundColor: "#ffe8cb",
+                                borderRadius: 16,
+                                padding: 16,
+                                marginBottom: 20
+                            }}>
+                                <Text style={{ color: "#64748B", fontSize: 14 }}>
+                                    Grand Total
                                 </Text>
-                            </TouchableOpacity>
 
-                        </View>
+                                <Text style={{
+                                    fontSize: 32,
+                                    fontWeight: "800",
+                                    color: "#EA580C",
+                                    marginTop: 4
+                                }}>
+                                    ₹ {total.toFixed(2)}
+                                </Text>
+                            </View>
+
+                            {/* Buttons */}
+                            <View style={styles.buttonRow}>
+
+                                <TouchableOpacity
+                                    style={styles.cancelBtn}
+                                    onPress={() => setConfirmVisible(false)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.cancelText}>Cancel</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.confirmBtn}
+                                    onPress={handleConfirmBilling}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.confirmText}>
+                                        Confirm & Print
+                                    </Text>
+                                </TouchableOpacity>
+
+                            </View>
+
+                        </ScrollView>
                     </View>
                 </View>
             </Modal>
@@ -576,13 +872,18 @@ export default function OrderCart({
                     items={cartItems}
                     total={total}
                     subtotal={subtotal}
-                    gst={gst}
+                    cgst={cgst}
+                    sgst={sgst}
                     vat={vat}
+                    roundOff={roundOff}
                     shopData={shopData}
                     customerName={customerName}
                     orderType={orderType}
                     feedbackUrl={feedbackUrl}
                     sectionName={sectionName}
+                    paperWidth={paperWidthDots}
+                    paymentMethod={paymentMethod}
+                    discountPercent={discountPercent}
                 />
             </ViewShot>
 
@@ -620,7 +921,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 15,
-        // backgroundColor: "#F8FAFC",
+        backgroundColor: "#F8FAFC",
     },
 
     title: {
@@ -641,15 +942,30 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         backgroundColor: "#fff",
-        padding: 12,
-        borderRadius: 10,
-        marginBottom: 10,
+        padding: 14,
+        borderRadius: 16,
+        marginBottom: 12,
+
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 1,
+
+        borderWidth: 1,
+        borderColor: "#F1F5F9",
+    },
+
+    newItemRow: {
+        borderLeftWidth: 4,
+        borderLeftColor: "#F97316",
+        backgroundColor: "#FFF7ED",
     },
 
     itemName: {
-        fontWeight: "600",
-        fontSize: 15,
-        color: "black"
+        fontWeight: "700",
+        fontSize: 16,
+        color: "#0F172A",
     },
 
     itemPrice: {
@@ -659,9 +975,15 @@ const styles = StyleSheet.create({
     },
 
     newTag: {
-        color: "red",
+        marginTop: 6,
+        alignSelf: "flex-start",
+        backgroundColor: "#FEF2F2",
+        color: "#DC2626",
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
         fontSize: 11,
-        fontWeight: "bold",
+        fontWeight: "600",
     },
 
     qtyBox: {
@@ -683,19 +1005,25 @@ const styles = StyleSheet.create({
         marginVertical: 15,
     },
 
-    newItemsTitle: {
-        textAlign: "center",
-        fontWeight: "bold",
-        color: "red",
-        marginBottom: 10,
-        fontSize: 20
-    },
+    // newItemsTitle: {
+    //     textAlign: "center",
+    //     fontWeight: "bold",
+    //     color: "red",
+    //     marginBottom: 10,
+    //     fontSize: 20
+    // },
 
     totalBox: {
-        backgroundColor: "#E2E8F0",
-        padding: 15,
-        borderRadius: 12,
+        backgroundColor: "#FFFFFF",
+        padding: 16,
+        borderRadius: 16,
         marginTop: 20,
+
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 2,
     },
 
     rowBetween: {
@@ -720,8 +1048,9 @@ const styles = StyleSheet.create({
     },
 
     totalAmount: {
-        fontWeight: "bold",
-        fontSize: 18,
+        fontWeight: "800",
+        fontSize: 22,
+        color: "#16A34A", // green = money feel
     },
 
     bottomBar: {
@@ -736,19 +1065,25 @@ const styles = StyleSheet.create({
     },
 
     primaryBtn: {
-        backgroundColor: "#1E293B",
-        padding: 15,
-        borderRadius: 10,
+        backgroundColor: "#ff954a",
+        padding: 16,
+        borderRadius: 18,
         alignItems: "center",
-        marginTop: 10,
+        marginTop: 16,
+        fontWeight: "bold",
+
+        shadowColor: "#F97316",
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 4,
     },
 
     secondaryBtn: {
-        backgroundColor: "#E5E7EB",
-        padding: 15,
-        borderRadius: 10,
+        backgroundColor: "#232c3f",
+        padding: 14,
+        borderRadius: 14,
         alignItems: "center",
-
     },
 
     modalOverlay: {
@@ -761,14 +1096,15 @@ const styles = StyleSheet.create({
 
     modalBox: {
         width: "100%",
-        backgroundColor: "#fff",
-        borderRadius: 24,
+        backgroundColor: "#ffffff",
+        borderRadius: 28,
         padding: 24,
+
         shadowColor: "#000",
         shadowOpacity: 0.15,
-        shadowRadius: 20,
+        shadowRadius: 25,
         shadowOffset: { width: 0, height: 10 },
-        elevation: 10,
+        elevation: 12,
     },
 
     modalTitle: {
@@ -835,13 +1171,27 @@ const styles = StyleSheet.create({
 
         shadowColor: "#EE5E1E",
         shadowOpacity: 0.4,
-        shadowRadius: 10,
+        shadowRadius: 5,
         shadowOffset: { width: 0, height: 6 },
-        elevation: 6,
+        elevation: 4,
     },
 
     confirmText: {
         fontWeight: "700",
         color: "#fff",
+    },
+    deleteBtn: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        backgroundColor: "#FEE2E2", // light red
+
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    subText: {
+        fontSize: 12,
+        color: "#64748B",
+        fontWeight: "500",
     },
 });

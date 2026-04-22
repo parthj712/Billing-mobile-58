@@ -14,7 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SnackbarContext } from "../context/SnackbarContext";
 
 
-export default function PrinterSetupScreen() {
+export default function PrinterSetupScreen({ closeModal }) {
 
 
     const { showSnackbar } = useContext(SnackbarContext);
@@ -28,6 +28,7 @@ export default function PrinterSetupScreen() {
 
     const [billingPrinter, setBillingPrinter] = useState(null);
     const [kotPrinter, setKotPrinter] = useState(null);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         const loadSavedPrinters = async () => {
@@ -198,24 +199,37 @@ export default function PrinterSetupScreen() {
     };
 
     const savePrinters = async () => {
-        if (!billingPrinter) {
+        if (saving) return; // prevent multiple clicks
 
+        if (!billingPrinter) {
             showSnackbar("Select Billing Printer", "warning");
             return;
         }
 
-        const settings = {
-            mode: kotPrinter ? "DUAL" : "SINGLE",
-            billingPrinter,
-            kotPrinter
-        };
+        try {
+            setSaving(true);
 
-        await savePrinterSettings(settings);
+            const settings = {
+                mode: kotPrinter ? "DUAL" : "SINGLE",
+                billingPrinter,
+                kotPrinter
+            };
 
-        const check = await AsyncStorage.getItem("printer_settings");
-        // console.log("Saved Printer Settings:", check);
+            await savePrinterSettings(settings);
 
-        showSnackbar("Printers Saved Successfully", "warning");
+            showSnackbar("Printers Saved Successfully", "success");
+
+            // 🔥 CLOSE MODAL MANUALLY (controlled)
+            setTimeout(() => {
+                closeModal();
+            }, 800); // smooth UX
+
+        } catch (err) {
+            console.log(err);
+            showSnackbar("Failed to save printers", "error");
+        } finally {
+            setSaving(false);
+        }
     };
 
 

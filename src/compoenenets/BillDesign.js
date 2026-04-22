@@ -7,17 +7,20 @@ export const BillDesign = ({
     shopData,
     items,
     subtotal,
-    gst,
+    cgst,
+    sgst,
     vat,
+    roundOff,
     total,
     customerName,
     orderType,
     feedbackUrl,
+    paymentMethod,
+    discountPercent,
 }) => {
 
     console.log("feedbackUrl:", feedbackUrl);
     console.log("subtotal:", subtotal);
-    console.log("gst:", gst);
     console.log("vat:", vat);
 
 
@@ -40,6 +43,12 @@ export const BillDesign = ({
         const d = new Date();
         return d.toLocaleString("en-IN");
     };
+
+
+    const formattedPayment =
+        paymentMethod === "UPI" ? "UPI" :
+            paymentMethod === "CASH" ? "CASH" :
+                paymentMethod;
 
     return (
         <View style={styles.container}>
@@ -83,6 +92,13 @@ export const BillDesign = ({
             {shopData?.gstNumber && (
                 <Text style={styles.smallText}>
                     GST:{shopData.gstNumber}
+                </Text>
+            )}
+
+
+            {shopData?.fssaiNumber && (
+                <Text style={styles.smallText}>
+                    FSSAI:{shopData.fssaiNumber}
                 </Text>
             )}
 
@@ -154,12 +170,30 @@ export const BillDesign = ({
                 <Text style={styles.totalText}>₹ {Number(subtotal || 0).toFixed(2)}</Text>
             </View>
 
-            {gst > 0 && (
+            {/* {gst > 0 && (
                 <View style={styles.row}>
                     <Text style={styles.totalText}>GST</Text>
                     <Text style={styles.totalText}>₹ {gst.toFixed(2)}</Text>
                 </View>
+            )} */}
+
+
+            {cgst > 0 && (
+                <View style={styles.row}>
+                    <Text style={styles.totalText}>CGST (2.5%)</Text>
+                    <Text style={styles.totalText}>₹ {cgst.toFixed(2)}</Text>
+                </View>
             )}
+
+
+            {sgst > 0 && (
+                <View style={styles.row}>
+                    <Text style={styles.totalText}>SGST (2.5%)</Text>
+                    <Text style={styles.totalText}>₹ {sgst.toFixed(2)}</Text>
+                </View>
+            )}
+
+
 
             {vat > 0 && (
                 <View style={styles.row}>
@@ -169,9 +203,25 @@ export const BillDesign = ({
             )}
 
 
-            <Text style={styles.divider}>
-                ------------------------------------------------------------------------------------------------
-            </Text>
+            {roundOff !== 0 && (
+
+                <View>
+
+                    <Text style={styles.divider}>
+                        ------------------------------------------------------------------------------------------------
+                    </Text>
+
+                    <View style={styles.row}>
+                        <Text style={styles.totalText}>Round Off</Text>
+                        <Text style={styles.totalText}>₹ {roundOff > 0 ? "+" : ""}
+                            {roundOff.toFixed(2)}</Text>
+                    </View>
+
+                    <Text style={styles.divider}>
+                        ------------------------------------------------------------------------------------------------
+                    </Text>
+                </View>
+            )}
 
             <View style={styles.row}>
                 <Text style={styles.totalText}>TOTAL</Text>
@@ -188,6 +238,14 @@ export const BillDesign = ({
             <Text style={styles.divider}>
                 ------------------------------------------------------------------------------------------------
             </Text>
+
+            {formattedPayment && (
+                <View style={styles.row}>
+                    <Text style={styles.totalText}>  Payment Mode</Text>
+                    <Text style={styles.totalText}> {formattedPayment}</Text>
+                </View>
+            )}
+
 
             {/* 🔥 QR TEXT (optional) */}
             {feedbackUrl && (
